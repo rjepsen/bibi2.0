@@ -1,0 +1,83 @@
+---
+title: "Untitled"
+author: "Zachary M. Smith"
+date: "June 13, 2018"
+output: html_document
+---
+
+# Spatial Exploration
+
+Exploration of the low scoring reference sites spatially. This section is intended as a quick check for spatial bias.
+
+
+Load the necessary package.
+```{r}
+suppressPackageStartupMessages(
+library(rgdal)
+)
+```
+
+Import Chesapeake Bay basin shapefile and fortify for plotting.
+```{r}
+basin.poly <- readOGR(file.path("D:/ZSmith/Projects/Chessie_BIBI/bibi_baseline/bibi_baseline",
+                                "data/gis/NHDPlus/shapefiles/basin.shp"),
+                      verbose = FALSE)
+
+basin.fort <- fortify(basin.poly)
+```
+
+Use the `cutpoints()` function to identify the Best Seperation Point (BSP) for each bioregion. Any reference values greater than or equal to the BSP are classified "TP" (True Positive), while any reference values less than the BSP are classified as "FN" (False Negative).
+```{r}
+ref.class <- bio.fam.df %>% 
+  cutpoints() %>% 
+  filter(category %in% c("ref")) %>% 
+  mutate(class = if_else(final_score >= cutpoint, "TP", "FN")) %>% 
+  rename(latitude = latitude.x,
+         longitude = longitude.x)
+  
+```
+
+__Figure a__ shows all of the reference sampling events. TP are colored blue wil FN are orange. __Figure b__ focus just on the problematic FNs. There are some small clusters of FN but I do not see any apparent spatial pattern associated with the FNs.
+```{r, fig.width = 8, fig.height=12}
+ref.plot <- ggplot() +
+  geom_polygon(data = basin.fort,
+               aes(long, lat, group = group),
+               color = "black", fill = "#999999") +
+  #annotation_map(fortify(clip2), fill = "#999999", colour = "black") +
+  geom_point(data = ref.class,
+             aes(longitude, latitude, color = class)) +
+   scale_color_manual(values = c("TP" = "#56B4E9",
+                               "FN" = "#E69F00"),
+                     name = "Classification") +
+  coord_equal() +
+  theme_bw() +
+  theme(#legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+fn.plot <- ggplot() +
+  geom_polygon(data = basin.fort,
+               aes(long, lat, group = group),
+               color = "black", fill = "#999999") +
+  #annotation_map(fortify(clip2), fill = "#999999", colour = "black") +
+  geom_point(data = ref.class[ref.class$class == "FN", ],
+             aes(longitude, latitude, color = class)) +
+   scale_color_manual(values = c("TP" = "#56B4E9",
+                               "FN" = "#E69F00"),
+                     name = "Classification") +
+  coord_equal() +
+  theme_bw() +
+  theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+cowplot::plot_grid(ref.plot, fn.plot, ncol = 1, labels = "auto")
+```
