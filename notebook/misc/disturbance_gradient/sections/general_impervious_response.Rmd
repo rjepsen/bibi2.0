@@ -1,0 +1,58 @@
+---
+title: "Untitled"
+author: "Zachary M. Smith"
+date: "June 15, 2018"
+output: html_document
+---
+
+# Impervious Response
+
+Create a long data frame of Chessie BIBI scores and percent impervious surface values. Mixed samples are removed from this assessment. Additionally, all sampling events collected prior to 1998-06-01 or after 2013-06-01 are excluded from this assessment because they could not be accurately assigned impervious surface values.
+```{r}
+imp.long <- imp.bibi.df %>% 
+  select(spatial, category, event_id, sample_number, date, agency_code, final_score,
+         pctimp2001ws, pctimp2006ws, pctimp2011ws) %>% 
+  gather(imp, imp_value, pctimp2001ws:pctimp2011ws) %>% 
+  filter(!is.na(imp_value),
+         !category == "mix") %>% 
+  mutate(category = factor(category, levels = c("ref", "min", "mod", "deg")))
+```
+
+
+## Plots
+
+It appears that the 2017 family-level bioregion indices already respond fairly well to impairment due to upstream impervious surfaces. Most likely the water quality and habitat variables originally used to define the disturbance gradient are correlated with the upstream impervious surface values. This may explain why CE improvements in [Reference Refinement] were minimal. However, for the Chessie BIBI to consistently respond to upstream impervious surfaces, then upstream impervious surfaces need to be included as a variable for defining the disturbance gradient.
+
+### Scatter Plot
+```{r}
+library(RColorBrewer)
+imp.long %>% 
+ggplot(aes(final_score, imp_value, color = category)) +
+  geom_point(alpha = 0.25) +
+  scale_colour_manual(values = rev(brewer.pal(4, "Spectral"))) +
+  facet_wrap(~category) + 
+  ylab("Impervious Cover (%)")  +
+  xlab("Chessie BIBI Score")
+```
+
+### Box-and Whisker Plot
+```{r}
+
+imp.long %>% 
+ggplot(aes(category, imp_value, color = category)) +
+  geom_boxplot() +
+  scale_colour_manual(values = rev(brewer.pal(4, "Spectral"))) +
+  ylab("Impervious Cover (%)")  +
+  xlab("Disturbance Gradient")
+```
+
+### Box-and-Whisker Plot by Bioregion
+```{r, fig.width=8, fig.height=10}
+imp.long %>% 
+ggplot(aes(category, imp_value, color = category)) +
+  geom_boxplot() +
+  scale_colour_manual(values = rev(brewer.pal(4, "Spectral"))) +
+  facet_wrap(~spatial, ncol = 2, scales = "free")+
+  ylab("Impervious Cover (%)") +
+  xlab("Disturbance Gradient")
+```

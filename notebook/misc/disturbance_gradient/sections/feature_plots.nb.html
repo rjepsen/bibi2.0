@@ -1,0 +1,91 @@
+---
+title: "Untitled"
+author: "Zachary M. Smith"
+date: "June 22, 2018"
+output: html_document
+---
+
+```{r, message=FALSE}
+feat.df <- reduce(list(bio.fam.sub, wq.df, habitat.df, scat.df), full_join)
+bio.fam.ref <- bio.fam.sub %>%
+    filter(class == "ref") %>%
+    mutate(Classification = if_else(final_score >= ref_10, "TP", "FN"))
+
+```
+
+```{r}
+bioregions.vec <- unique(bio.fam.ref$spatial)[!is.na(unique(bio.fam.ref$spatial))]
+```
+
+```{r}
+x <- test2
+y <- "wq_value"
+title <- "test"
+wrapby <- "wq_param"
+plot.features <- function(x, y, wrapby, title) {
+  ggplot(x, aes_string("final_score", y), na.rm = TRUE) +
+    geom_point(aes(color = Classification), alpha = 0.5) +
+    geom_smooth(method = "lm", formula = y~x, na.rm = TRUE) +
+    facet_wrap(as.formula(paste("~", wrapby)), scale = "free", ncol = 4) +
+    ggtitle(toupper(title)) +
+    theme(plot.title = element_text(hjust = 0.5)) %>%
+    suppressMessages() %>%
+    suppressWarnings()
+}
+```
+
+```{r}
+feat.wq <- left_join(bio.fam.ref, wq.df, by = "event_id")
+```
+
+```{r, fig.width=8, fig.height=10}
+wq.plots <- purrr::map(bioregions.vec, function(spatial.i) {
+  test2 <- feat.wq %>%
+    filter(spatial == spatial.i,
+           !is.na(wq_value)) %>%
+    plot.features("wq_value", "wq_param", spatial.i)
+}) %>%
+  set_names(bioregions.vec)
+
+wq.plots
+```
+
+```{r}
+feat.hab <- left_join(bio.fam.ref, habitat.df, by = c("event_id", "sample_number"))
+```
+
+```{r, fig.width=8, fig.height=10}
+hab.plots <- purrr::map(bioregions.vec, function(spatial.i) {
+  test2 <- feat.hab %>%
+    filter(spatial == spatial.i,
+           !is.na(hab_value)) %>%
+    plot.features("hab_value", "hab_param", spatial.i)
+}) %>%
+  set_names(bioregions.vec)
+
+hab.plots
+```
+
+```{r}
+feat.scat <- left_join(bio.fam.ref, scat.df, by = "comid")
+```
+
+```{r, fig.width=12, fig.height=150, message=FALSE}
+spatial.i
+scat.plots <- purrr::map(bioregions.vec[1], function(spatial.i) {
+  test2 <- feat.scat %>%
+    filter(spatial == spatial.i,
+           !is.na(scat_value)) %>%
+    group_by(scat_param) %>%
+    mutate(count = n(),
+           zero_count = sum(scat_value == 0)) %>%
+    ungroup() %>%
+    filter(count != zero_count) %>%
+    plot.features("scat_value", "scat_param", spatial.i)
+}) %>%
+  set_names(bioregions.vec)
+
+scat.plots
+
+```
+

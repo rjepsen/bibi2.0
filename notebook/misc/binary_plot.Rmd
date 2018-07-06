@@ -1,0 +1,106 @@
+---
+title: "Untitled"
+author: "Zachary M. Smith"
+date: "April 20, 2018"
+output: html_document
+---
+
+```{r}
+
+sub.df <- taxa.df %>% 
+  filter(icprb_bioregion_id %in% c("lnp"),
+         category %in% c("ref", "deg"))
+```
+
+```{r}
+median.df <- sub.df %>% 
+  group_by(unique_id) %>% 
+  mutate(total = sum(reporting_value),
+         pct = reporting_value / total * 100) %>% 
+  group_by(unique_id, suborder, category) %>% 
+  summarize(pct = sum(pct)) %>% 
+  group_by(category, suborder) %>% 
+  summarize(median_pct = median(pct)) %>% 
+  ungroup()
+```
+
+```{r}
+median.wide <- median.df %>% 
+  spread(category, median_pct, fill = 0)
+
+
+```
+
+```{r}
+sub.wide <- sub.df %>% 
+  group_by(unique_id) %>% 
+  mutate(total = sum(reporting_value),
+         pct = reporting_value / total) %>% 
+  group_by(unique_id, suborder, category) %>% 
+  summarize(pct = sum(pct)) %>% 
+  ungroup() %>% 
+  mutate(pct = if_else(pct > 0, 1, 0)) %>% 
+  spread(suborder, pct, fill = 0) %>% 
+  select(-unique_id) %>% 
+  mutate(category = factor(category, levels = c("ref", "deg"))) 
+
+sub.wide <- sub.wide[, colSums(sub.wide != 0) > 0]
+```
+
+```{r}
+model <- glm(category ~ ., family = binomial(link = 'logit'), data = sub.wide)
+#plot(model)
+```
+
+
+```{r}
+log.model <- data.frame("coefficients" = model$coefficients) %>% 
+  rownames_to_column(var = "suborder") %>% 
+  filter(suborder != "(Intercept)") %>% 
+  mutate(rank = rank(coefficients))
+```
+
+```{r}
+final.df <- left_join(sub.df, log.model, by = "suborder") %>% 
+  arrange(rank) %>% 
+  mutate(suborder = factor(suborder, unique(suborder)))
+```
+
+
+```{r}
+test <- final.df %>% 
+  group_by(unique_id) %>% 
+  mutate(total = sum(reporting_value),
+         pct = reporting_value / total) %>% 
+  group_by(unique_id, suborder, category) %>% 
+  summarize(pct = sum(pct)) %>% 
+  ungroup() %>% 
+  group_by(suborder, category) %>% 
+  summarize(geo_mean = exp(mean(log(pct + 1))) - 1,
+            mean = mean(pct),
+            median = median(pct),
+            quant25 = quantile(pct, 0.25),
+            quant75 = quantile(pct, 0.75)) %>% 
+  ungroup()  %>% 
+  mutate(pct = median) %>% 
+  #mutate(pct = if_else(category == "deg", quant75, quant25)) %>% 
+  select(-quant25, -quant75, -median, -geo_mean, -mean) %>% 
+  spread(category, pct, fill = 0) %>% 
+  mutate(diff = ref - deg,
+         rank = rank(diff)) %>% 
+  gather(category, pct, ref:deg) %>% 
+  arrange(rank) %>% 
+  mutate(suborder = factor(suborder, unique(suborder)))
+```
+
+```{r, fig.width = 8}
+test %>% 
+  #filter(abs(diff) >= 0.05) %>% 
+  ggplot(aes(suborder, pct, group = category, color = category, fill = category)) +
+    #geom_bar(stat = "identity", position = "dodge") +
+  geom_ribbon(aes(ymin = 0, ymax = pct), stat = "identity", alpha = 0.3) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.25))
+
+```
+
+

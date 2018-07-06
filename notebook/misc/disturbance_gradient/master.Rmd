@@ -1,0 +1,44 @@
+---
+title: "Chessie BIBI: The Effect of Upstream Percent Impervious Surfaces"
+author: "Zachary M. Smith"
+date: "June 13, 2018"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{r, child = "sections/preprocessing.Rmd"}
+
+```
+
+```{r, child = "sections/functions.Rmd"}
+
+```
+
+```{r, child = "sections/spatial_visualization.Rmd"}
+
+```
+
+```{r, child = "sections/impervious_plots.Rmd"}
+
+```
+
+```{r, child = "sections/remove_imp2.Rmd"}
+
+```
+
+```{r, child = "sections/general_impervious_response.Rmd"}
+
+```
+
+```{r, child = "sections/prep_features.Rmd"}
+
+```
+
+```{r, child = "sections/feature_plots.Rmd"}
+
+```
+

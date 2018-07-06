@@ -1,0 +1,108 @@
+---
+title: "Untitled"
+author: "Zachary M. Smith"
+date: "June 29, 2018"
+output: html_document
+---
+
+```{r, fig.width=8, fig.height=15}
+plot.features <- function(x, y, wrapby, title) {
+  ggplot(x, aes_string("final_score", y), na.rm = TRUE) +
+    geom_point(aes(color = Classification), alpha = 0.5) +
+    geom_smooth(method = "lm", formula = y~x, na.rm = TRUE) +
+    facet_wrap(as.formula(paste("~", wrapby)), scale = "free", ncol = 4) +
+    ggtitle(toupper(title)) +
+    theme(plot.title = element_text(hjust = 0.5))
+}
+```
+
+## Wilcoxon Rank Sum Test
+```{r}
+wq.df <- wq.df %>% 
+  mutate(type = "wq") %>% 
+  rename(param = "wq_param",
+         value = "wq_value")
+
+habitat.df <- habitat.df %>% 
+  mutate(type = "habitat") %>% 
+  rename(param = "hab_param",
+         value = "hab_value")
+
+method.df <- method.df %>% 
+  mutate(type = "method") %>% 
+  rename(param = "method_param",
+         value = "method_value")
+
+time.df <- bio.fam.ref %>% 
+  select(event_id, sample_number, date) %>% 
+  mutate(month = lubridate::month(date),
+         season = case_when(
+           month %in% c(3, 4, 5) ~ 1,
+           month %in% c(6, 7, 8) ~ 2,
+           month %in% c(9, 10, 11) ~ 3,
+           TRUE ~ -100
+         ),
+         year = lubridate::year(date)) %>% 
+  gather(param, value, month:year) %>% 
+  mutate(type = "time") %>% 
+  select(-date)
+
+feat.df <- bind_rows(wq.df, habitat.df, time.df)
+
+bio.feat.df <- left_join(bio.fam.ref, feat.df, by = c("event_id", "sample_number"))
+```
+
+```{r}
+wilcox.df <- purrr::map_df(bioregion.vec, function(bio.i) {
+  bio.sub <- filter(bio.feat.df, spatial == bio.i)
+  param.vec <- unique(bio.sub$param)
+  test3 <- purrr::map_df(param.vec, function(param.i){
+    param.sub <- bio.sub  %>% 
+      filter(param == param.i)
+    if (length(unique(param.sub$Classification)) == 2) {
+      wt <- wilcox.test(value ~ Classification, data = param.sub,
+                        exact = TRUE) %>% 
+        broom::tidy(stringsAsFactors =  FALSE) %>% 
+        mutate_if(is.factor, as.character) %>% 
+        rename(pvalue = "p.value") %>% 
+        mutate(spatial = bio.i,
+               param = param.i,
+               tp_count = nrow(param.sub[param.sub$Classification == "TP", ]),
+               fn_count = nrow(param.sub[param.sub$Classification == "FN", ]),
+               round_pvalue = case_when(
+                 pvalue < 0.001 ~ "< 0.001",
+                 pvalue > 0.05 ~ "> 0.050",
+               TRUE ~ as.character(round(pvalue, 3))
+               )) %>% 
+        select(spatial, param, tp_count, fn_count, everything())
+    } else {
+      NULL
+    }
+    
+  })
+})
+```
+
+```{r, fig.width=8, fig.height=20}
+low.wilcox.df <- wilcox.df %>% 
+  filter(pvalue < 0.05) %>% 
+  select(spatial, param, pvalue, round_pvalue)  %>% 
+  inner_join(bio.feat.df, ., by = c("spatial", "param")) %>% 
+  group_by(spatial, param, pvalue, round_pvalue) %>% 
+  summarize(median = median(value)) %>% 
+  ungroup() %>% 
+  mutate(label_pvalue = paste("p-value =", round_pvalue))
+  
+low.wilcox.df %>%
+  inner_join(bio.feat.df, ., by = c("spatial", "param")) %>% 
+ggplot(aes(Classification, value, color = Classification)) +
+  geom_jitter() +
+  # geom_dotplot(binwidth = 1, binaxis = 'y', stackdir = 'center', dotsize = 0.2) +
+  geom_boxplot(alpha = 0) +
+  facet_wrap(~spatial + param + label_pvalue, scales = "free_y", ncol = 4)# +
+  # geom_text(data = low.wilcox.df,
+  #           aes(x = 1.5, y = median, label = paste("p-value =", round_pvalue)),
+  #           inherit.aes = FALSE)
+```
+
+

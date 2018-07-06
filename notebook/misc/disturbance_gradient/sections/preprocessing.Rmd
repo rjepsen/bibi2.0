@@ -1,0 +1,133 @@
+---
+title: "Untitled"
+author: "Zachary M. Smith"
+date: "June 13, 2018"
+output: html_document
+---
+
+# Preprocessing
+
+Load necessary packages. __toolbox__ is a custom package for data preprocessing. The function `toolbox::prep_df()` will be used for imported data to standardize column names and character columns by converting all characters to lowercase, removing leading/trailing white space, removing all non-alphanumeric characters and replacing them with underscores ("_").
+```{r, echo=FALSE}
+suppressPackageStartupMessages(
+  library(tidyverse)
+)
+library(toolbox)
+```
+
+## Import Data
+
+Import family-level bioregion index scores and ratings.
+```{r}
+score.path <- "H:/Projects/Chessie_BIBI/report/FINAL_May25_2017/2017_Data/Scores_Ratings"
+bio.fam.path <- "Bioregion/BIOREGION_FAMILY_All_Event_Ratings_2017-06-29.csv"
+
+bio.fam.df <- data.table::fread(file.path(score.path, bio.fam.path)) %>%
+  toolbox::prep_df() %>%
+  mutate(date = as.Date(date, "%m_%d_%Y"),
+         category = if_else(category == "sev", "deg", category))
+
+```
+
+Import Chessie BIBI stations assigned NHDPlus 2 Medium Resolution catchment ID (`featureid`).
+```{r}
+catchment.df <- data.table::fread(file.path(rprojroot::find_rstudio_root_file(),
+                                            "data/assigned_catchments_oct16.csv")) %>%
+  toolbox::prep_df()
+```
+
+Join the catchment information with the 2017 Chessie BIBI scores and ratings.
+```{r}
+bio.fam.df <- left_join(bio.fam.df, catchment.df,
+                        by = c("station_id"))
+rm(catchment.df)
+```
+
+This is a check that all rows now have a catchment assigned. Any rows without a catchment will appear in a table below the code chunk. The absence of a table indicates that all rows have an assigned catchment.
+```{r}
+test <- bio.fam.df %>%
+  filter(is.na(featureid))
+if(nrow(test) > 0) {
+test %>% 
+    kableExtra::kable() %>% 
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+}
+```
+
+Import and join the Impervious Surfaces 2001, 2006, and 2011 StreamCat files.
+```{r}
+stream.cat.path <- "H:/GIS3/GIS5/New_GIS/streamcat/unzip"
+
+imp.filename.vec <- c("ImperviousSurfaces2001_Region02.csv",
+                      "ImperviousSurfaces2006_Region02.csv",
+                      "ImperviousSurfaces2011_Region02.csv")
+
+imp.df <- map(imp.filename.vec, function(file.i) {
+  data.table::fread(file.path(stream.cat.path, file.i)) %>%
+    toolbox::prep_df()
+}) %>%
+  reduce(full_join, by = c("comid", "catareasqkm",
+                           "wsareasqkm", "catpctfull",
+                           "wspctfull"))
+```
+
+
+## Assign Impervious Surfaces Data
+
+Join the Impervious Surfaces data with the Chessie BIBI scores and ratings.
+```{r}
+imp.bibi.df <- left_join(bio.fam.df, imp.df, by = c("featureid" = "comid"))
+```
+
+Assign the Chessie BIBI data the correct Impervious Surfaces based on collection date. A range of ± 2.5 years around the Impervious Surfaces data collection years (2001, 2006, and 2011) was used to assign the Chessie BIBI data the most appropriate Impervious Surfaces values. __Therefore, any data collected prior to 1998-06-01 or after 2013-06-01 cannot be assigned an Impervious Surfaces value.__
+```{r}
+imp.bibi.df <- imp.bibi.df %>%
+  mutate(
+    # pctimp2001ws = if_else(date < as.Date("2003-06-01"), pctimp2001ws, as.numeric(NA)),
+    pctimp2001ws = if_else(date >= as.Date("1998-06-01") & date < as.Date("2003-06-01"),
+                           pctimp2001ws, as.numeric(NA)),
+    pctimp2006ws = if_else(date >= as.Date("2003-06-01") & date < as.Date("2008-06-01"),
+                           pctimp2006ws, as.numeric(NA)),
+    pctimp2011ws = if_else(date >= as.Date("2008-06-01") & date < as.Date("2013-06-01"),
+                           pctimp2011ws, as.numeric(NA))
+    # pctimp2011ws = if_else(date >= as.Date("2008-06-01"), pctimp2011ws, as.numeric(NA))
+  ) %>% 
+  mutate(
+    # pctimp2001cat = if_else(date < as.Date("2003-06-01"), pctimp2001cat, as.numeric(NA)),
+    pctimp2001cat = if_else(date >= as.Date("1998-06-01") & date < as.Date("2003-06-01"),
+                           pctimp2001cat, as.numeric(NA)),
+    pctimp2006cat = if_else(date >= as.Date("2003-06-01") & date < as.Date("2008-06-01"),
+                           pctimp2006cat, as.numeric(NA)),
+    pctimp2011cat = if_else(date >= as.Date("2008-06-01") & date < as.Date("2013-06-01"),
+                           pctimp2011cat, as.numeric(NA))
+    # pctimp2011cat = if_else(date >= as.Date("2008-06-01"), pctimp2011cat, as.numeric(NA))
+  )
+```
+
+## Reference Data
+
+Subset the data to only include reference data.
+```{r}
+ref.df <- imp.bibi.df %>%
+  filter(category == "ref") %>%
+  mutate(ref_cat = if_else(final_score < ref_10, "PVP", "EGF"),
+         ref_cat = factor(ref_cat, levels = c("PVP", "EGF"))) %>%
+  arrange(final_score)
+```
+
+Make the three percent impervious surfaces columns a single column by transforming the data from a wide format to a long format. The column name `imp` represents the data source (e.g., `pctimp2006ws`) and the column name `imp_value` represents the percent impervious surfaces value. ~~All data collected prior to 1998-06-01 or after 2013-06-01 is maintained because impervious surfaces values could not be accurately assigned. For data collected between 1998-06-01 and 2013-06-01,~~ Rows with `NA` in the `imp_value` column indicate that the impervious surface year is not appropriate for the corresponding Chessie BIBI sample, and therefore were removed.
+```{r}
+ref.imp <- ref.df %>%
+  select(event_id, date, sample_number, final_score, ref_cat,
+         pctimp2001ws, pctimp2006ws, pctimp2011ws) %>%
+  gather(imp, imp_value, pctimp2001ws:pctimp2011ws) %>%
+  filter(!is.na(imp_value))
+  # mutate(keep = case_when(
+  #   date < as.Date("1998-06-01") | date >= as.Date("2013-06-01") ~ "keep",
+  #   date >= as.Date("1998-06-01") & date < as.Date("2013-06-01") & !is.na(imp_value) ~ "keep",
+  #   date >= as.Date("1998-06-01") & date < as.Date("2013-06-01") & is.na(imp_value) ~ "remove",
+  #   TRUE ~ "ERROR"
+  #   )) %>% 
+  # filter(keep == "keep") %>% 
+  # select(-keep)
+```
