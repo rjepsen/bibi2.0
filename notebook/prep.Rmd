@@ -15,7 +15,22 @@ data("attributes.fwmi")
 
 
 ```{r}
-channel <- RODBC::odbcConnect("CBIBI_2017")
+#channel <- RODBC::odbcConnect("CBIBI_2017")
+
+# Set your working directory
+setwd("C:/Users/RJepson/Desktop/Access_2_CSV")
+
+#Either import MS Access Database or import individual CVSs of the tabs
+TAB_EVENT <- read.csv("TAB_EVENT.csv", stringsAsFactors = FALSE)
+TAB_STATIONS <- read.csv("TAB_STATIONS.csv", stringsAsFactors = FALSE)
+TAB_PROJECT <- read.csv("TAB_PROJECT.csv", stringsAsFactors = FALSE)
+TAB_WQ_DATA <- read.csv("TAB_WQ_DATA.csv", stringsAsFactors = FALSE)
+TAB_PARAMETER_WQ <- read.csv("TAB_PARAMETER_WQ.csv", stringsAsFactors = FALSE)
+TAB_HABITAT_ASSESSMENT <- read.csv("TAB_HABITAT_ASSESSMENT.csv", stringsAsFactors = FALSE)
+TAB_HABITAT_PARAMETERS <- read.csv("TAB_HABITAT_PARAMETERS.csv", stringsAsFactors = FALSE)
+TAB_TAXONOMIC_COUNT <- read.csv("TAB_TAXONOMIC_COUNT.csv", stringsAsFactors = FALSE)
+TAB_HUC_12 <- read.csv("TAB_HUC_12.csv", stringsAsFactors = FALSE)
+TAB_PROGRAM <- read.csv("TAB_HUC_12.csv", stringsAsFactors = FALSE)
 
 tab.vec <- c("TAB_EVENT", "TAB_STATIONS", "TAB_PROJECT",
              "TAB_WQ_DATA", "TAB_PARAMETER_WQ", "TAB_HABITAT_ASSESSMENT",
