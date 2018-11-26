@@ -3,6 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+Install and open the following packages/datasets.
 ```{r message=FALSE}
 library(tidyverse)
 library(stringr)
@@ -20,10 +21,8 @@ Import the data from the Access database.
 
 library(odbc)
 library(DBI)
-channel <- dbConnect(odbc(), "CBIBI_2017")
 
-# Set your working directory
-setwd("C:/Users/RJepson/Desktop/Access_2_CSV")
+channel <- dbConnect(odbc(), "CBIBI_2017")
 
 tab.vec <- c("TAB_EVENT", "TAB_STATIONS", "TAB_PROJECT",
              "TAB_WQ_DATA", "TAB_PARAMETER_WQ", "TAB_HABITAT_ASSESSMENT",
@@ -37,16 +36,14 @@ tab.list <- purrr::map(tab.vec, function(tab.i) {
 }) %>% 
   set_names(tolower(tab.vec))
 
-#RODBC::odbcCloseAll()
+dbDisconnect(channel)
 
 ###########################################################################################
 
 # USE THIS CODE IF YOU HAVE WINDOWS 32-BIT
 
+# library(RODBC)
 # channel <- RODBC::odbcConnect("CBIBI_2017")
-
-# Set your working directory
-#setwd("C:/Users/RJepson/Desktop/Access_2_CSV")
 
 #tab.vec <- c("TAB_EVENT", "TAB_STATIONS", "TAB_PROJECT",
 #            "TAB_WQ_DATA", "TAB_PARAMETER_WQ", "TAB_HABITAT_ASSESSMENT",
@@ -62,7 +59,7 @@ tab.list <- purrr::map(tab.vec, function(tab.i) {
 #RODBC::odbcCloseAll()
 
 ```
-
+Join the hierarchy dataset to the larger dataset using the tsn_final column as the key.
 ```{r}
 tab.list$tab_taxonomic_count <- tab.list$tab_taxonomic_count %>% 
   dplyr::mutate(tsn_final = str_replace_all(tsn_final, "(?<![0-9])0+", "")) %>% 
