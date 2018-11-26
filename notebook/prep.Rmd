@@ -62,9 +62,9 @@ dbDisconnect(channel)
 Join the hierarchy dataset to the larger dataset using the tsn_final column as the key.
 ```{r}
 tab.list$tab_taxonomic_count <- tab.list$tab_taxonomic_count %>% 
-  dplyr::mutate(tsn_final = str_replace_all(tsn_final, "(?<![0-9])0+", "")) %>% 
+  dplyr::mutate(tsn_final = str_replace_all(tsn_final, "(?<![0-9])0+", "")) %>% # in tsn_final, if there are 1 or more 0s not preceded by a 0-9, replace with " "
   left_join(hier.fwmi, by = "tsn_final") %>% 
-  prep_taxa()
+  prep_taxa() # implement the prep taxa function (excluding some taxa and rolling up some)
 ```
 
 ```{r cache=TRUE}
