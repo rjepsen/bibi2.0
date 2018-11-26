@@ -15,12 +15,18 @@ data("attributes.fwmi")
 
 
 ```{r}
-#channel <- RODBC::odbcConnect("CBIBI_2017")
+# Use this only if you have windows 32 bit
+# channel <- RODBC::odbcConnect("CBIBI_2017")
+
+# Use this if you have windows 64 bit
+library(odbc)
+library(DBI)
+channel <- dbConnect(odbc(), "CBIBI_2017")
 
 # Set your working directory
 setwd("C:/Users/RJepson/Desktop/Access_2_CSV")
 
-#Either import MS Access Database or import individual CVSs of the tabs
+#Either import MS Access Database or import individual .csv of the tabs
 TAB_EVENT <- read.csv("TAB_EVENT.csv", stringsAsFactors = FALSE)
 TAB_STATIONS <- read.csv("TAB_STATIONS.csv", stringsAsFactors = FALSE)
 TAB_PROJECT <- read.csv("TAB_PROJECT.csv", stringsAsFactors = FALSE)
@@ -37,13 +43,26 @@ tab.vec <- c("TAB_EVENT", "TAB_STATIONS", "TAB_PROJECT",
              "TAB_HABITAT_PARAMETERS", "TAB_TAXONOMIC_COUNT",
              "TAB_HUC_12", "TAB_PROGRAM")
 
+# Use the following code only if you are able to use RODBC
+# tab.list <- purrr::map(tab.vec, function(tab.i) {
+#  RODBC::sqlFetch(channel, tab.i, stringsAsFactors = FALSE) %>% 
+#    clean_df()
+#}) %>% 
+#  set_names(tolower(tab.vec))
+
+#RODBC::odbcCloseAll()
+
+# Use the following code if you are using the ODBC package with windows 64 bit
+library(magrittr) 
 tab.list <- purrr::map(tab.vec, function(tab.i) {
-  RODBC::sqlFetch(channel, tab.i, stringsAsFactors = FALSE) %>% 
-    clean_df()
+  dbReadTable(channel, tab.i, stringsAsFactors = FALSE) %>% 
+    clean_data_frame()
 }) %>% 
   set_names(tolower(tab.vec))
 
-RODBC::odbcCloseAll()
+#RODBC::odbcCloseAll()
+
+
 ```
 
 ```{r}
