@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "Chessie BIBI Refinement"
 output: html_notebook
 ---
 
@@ -82,12 +82,12 @@ rm(tab.list)
 ```
 
 ```{r cache=TRUE}
-site.class.df <- site_classification(prep.df)
+site.class.df <- site_classification(prep.df) # think can skip
 ```
 
 
 ```{r cache=TRUE}
-taxa.df <- site.class.df %>% 
+taxa.df <- site.class.df %>% # if previous skipped, should be prep.df
   ungroup() %>% 
   select(unique_id, category, icprb_bioregion_id, reporting_value,
          final_id, 
