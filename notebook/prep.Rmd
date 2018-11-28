@@ -155,6 +155,8 @@ Can be skipped; was for development.
 data.table::fwrite(metrics.df, "temp_metrics.csv")
 ```
 **2. CALCULATE THE BIOLOGICAL METRICS**
+Metrics have already been tested, and a subset of the the most suitable ones have been determined. 
+Use the following code to calculate the subsetted metrics. 
 ```{r}
 library(toolbox) # Download from Github (https://github.com/zsmith27/toolbox), then use: devtools::install_github("zsmith27/toolbox")
 library(tidyverse)
@@ -163,9 +165,7 @@ non_rare <- prep.df2 # non-rarefied data
 rare <- taxa.df      # rarefied data
 # reference ---------------------------------------------------------------
 met.thresh.df <-
-  data.table::fread(
-    "C:/Users/RJepson/Desktop/metric_thresholds.csv"
-  ) %>%
+  data.table::fread("C:/Users/RJepson/Desktop/metric_thresholds.csv") %>%
   toolbox::prep_df() %>%
   filter(
     taxonomic_resolution == "family",
@@ -175,7 +175,7 @@ met.thresh.df <-
 
 metrics <- sort(unique(met.thresh.df$metric))
 
-# calc metrics ------------------------------------------------------------
+# Calculate all the metrics ------------------------------------------------------------
 bio_fam_metrics <- function(x,y) {
   metrics.key <- metrics %>%
     select(unique_id) %>%
@@ -701,31 +701,27 @@ site_classification <- function(long.df){
 ```{r}
 
 ```
-5. METRIC TESTING
+5. METRIC SCORING
 ```{r}
 
 ```
-6. METRIC SCORING
+6. INDEX CONSTRUCTION
 ```{r}
 
 ```
-7. INDEX CONSTRUCTION
+7. INDEX CLASSIFICATION EFFICIENCY (BSP of index determined)
 ```{r}
 
 ```
-8. INDEX CLASSIFICATION EFFICIENCY (BSP of index determined)
+8. DELETE-D JACKNIFE VALIDATION AND PRECISION
 ```{r}
 
 ```
-9. DELETE-D JACKNIFE VALIDATION AND PRECISION
+9. NARRATIVE RATING CATEGORIES
 ```{r}
 
 ```
-10. NARRATIVE RATING CATEGORIES
-```{r}
-
-```
-11. AREA-WEIGHTING OF RATING RESULTS
+10. AREA-WEIGHTING OF RATING RESULTS
 ```{r}
 
 ```
