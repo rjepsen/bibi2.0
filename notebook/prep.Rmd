@@ -81,13 +81,40 @@ prep.df <- prep_data(tab.list$tab_taxonomic_count,
 
 rm(tab.list)
 ```
+Change ffg and habit codes to names.
+```{r}
+prep.df2 <-
+    dplyr::mutate(prep.df, ffg = case_when(
+    is.na(bibi_ffg) | bibi_ffg == "" ~ as.character(NA),
+    bibi_ffg == "cg" ~ "gather",
+    bibi_ffg == "pr" ~ "predator",
+    bibi_ffg == "sc" ~ "scrape",
+    bibi_ffg == "cf" ~ "filter",
+    bibi_ffg == "sh" ~ "shred",
+    bibi_ffg == "om" ~ "omnivore",
+    bibi_ffg == "pa" ~ "parasite",
+    bibi_ffg %in% c("pc", "pi") ~ "pierce",
+    TRUE ~ "ERROR"
+  ),
+  habit = case_when(
+    is.na(bibi_habit) | bibi_habit == "" ~ as.character(NA),
+    bibi_habit == "sp" ~ "sprawl",
+    bibi_habit == "cn" ~ "cling",
+    bibi_habit == "cb" ~ "climb",
+    bibi_habit == "bu" ~ "burrow",
+    bibi_habit == "sw" ~ "swim",
+    bibi_habit == "sk" ~ "skate",
+    TRUE ~ "ERROR"
+  )
+)
+```
 This can be skipped.
 ```{r eval = FALSE}
 # site.class.df <- site_classification(prep.df) # think can skip
 ```
 General cleaning of data; eliminating issues with duplicate values.
 ```{r cache=TRUE}
-taxa.df <- prep.df %>% # if previous skipped, should be prep.df
+taxa.df <- prep.df2 %>% # if previous skipped, should be prep.df
   ungroup() %>% 
   select(unique_id, icprb_bioregion_id, reporting_value,  # Previously, "category" was located as the second object, but as it was a product of the previous code, delete
          final_id, 
