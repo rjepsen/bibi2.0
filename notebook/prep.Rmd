@@ -81,8 +81,8 @@ prep.df <- prep_data(tab.list$tab_taxonomic_count,
 
 rm(tab.list)
 ```
-SKIP THIS
-```{r cache=TRUE}
+This can be skipped.
+```{r eval = FALSE}
 # site.class.df <- site_classification(prep.df) # think can skip
 ```
 General cleaning of data; eliminating issues with duplicate values.
@@ -108,9 +108,8 @@ pop up; however, the rarefactions seems to run with no issues and the taxa.df da
 library(vegan)
 taxa.df <- prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)
 ```
-Can skip the rest?
-
-```{r cache=TRUE}
+Can be skipped; was for development.
+```{r eval=FALSE}
 taxa.dev <- taxa.df %>% 
   filter(category %in% c("ref", "deg"))
 
@@ -123,8 +122,8 @@ metrics.df <- taxa_seq_parallel(taxa.dev, unique_id, reporting_value,
                                 job = "pct") %>% 
   bind_cols(metrics.df)
 ```
-
-```{r}
+Can be skipped; was for development.
+```{r eval=FALSE}
 
 data.table::fwrite(metrics.df, "temp_metrics.csv")
 ```
