@@ -27,7 +27,7 @@ bio_fam_metrics <- function(x) {
         long.df = x,
         unique.id.col = unique_id,
         count.col = reporting_value,
-        tol.col = aspt_mod
+        tol.col = aspt_mod # aspt
       ),
       pct_gastro_oligo = taxa_pct(
         long.df = x,
@@ -48,7 +48,7 @@ bio_fam_metrics <- function(x) {
         long.df = x,
         unique.id.col = unique_id,
         count.col = reporting_value,
-        tol.col = tol_value
+        tol.col = tol_value # bibi_tv
       ),
       pct_arthropoda = taxa_pct(
         long.df = x,
@@ -61,8 +61,8 @@ bio_fam_metrics <- function(x) {
         long.df = x,
         unique.id.col = unique_id,
         count.col = reporting_value,
-        taxon.col = habit,
-        taxon = "burrow"
+        taxon.col = habit, # bibi_habit
+        taxon = "burrow" # bu
       ),
       pct_chironomidae = taxa_pct(
         long.df = x,
@@ -76,21 +76,21 @@ bio_fam_metrics <- function(x) {
         unique.id.col = unique_id,
         count.col = reporting_value,
         taxon.col = habit,
-        taxon = "cling"
+        taxon = "cling"  # cn
       ),
       pct_burrow = taxa_pct(
         long.df = x,
         unique.id.col = unique_id,
         count.col = reporting_value,
         taxon.col = habit,
-        taxon = "burrow"
+        taxon = "burrow" # bu
       ),
       pct_collect = taxa_pct(
         long.df = x,
         unique.id.col = unique_id,
         count.col = reporting_value,
         taxon.col = ffg,
-        taxon = c("filter", "gather")
+        taxon = c("filter", "gather")  # cf, cg
       ),
       pct_cote = taxa_pct(
         long.df = x,
@@ -146,7 +146,7 @@ bio_fam_metrics <- function(x) {
         unique.id.col = unique_id,
         count.col = reporting_value,
         taxon.col = ffg,
-        taxon = "filter"
+        taxon = "filter"  # cf
       ),
       pct_heptageniidae = taxa_pct(
         long.df = x,
@@ -169,7 +169,7 @@ bio_fam_metrics <- function(x) {
         long.df = x,
         unique.id.col = unique_id,
         count.col = reporting_value,
-        taxon.col = tol_val,
+        taxon.col = tol_val,  # bibi_tv
         taxon = 0:3
       ),
       pct_intol_0_4 = taxa_pct(
@@ -228,7 +228,7 @@ bio_fam_metrics <- function(x) {
         unique.id.col = unique_id,
         count.col = reporting_value,
         taxon.col = ffg,
-        taxon = "predator"
+        taxon = "predator" # pr
       ),
       pct_pterygota = taxa_pct(
         long.df = x,
@@ -249,14 +249,14 @@ bio_fam_metrics <- function(x) {
         unique.id.col = unique_id,
         count.col = reporting_value,
         taxon.col = ffg,
-        taxon = "scrape"
+        taxon = "scrape" # sc
       ),
       pct_sprawl = taxa_pct(
         long.df = x,
         unique.id.col = unique_id,
         count.col = reporting_value,
         taxon.col = habit,
-        taxon = "sprawl"
+        taxon = "sprawl"  # sp
       ),
       pct_systellognatha = taxa_pct(
         long.df = x,
@@ -375,28 +375,28 @@ bio_fam_metrics <- function(x) {
         unique.id.col = unique_id,
         low.taxa.col = habit,
         high.taxa.col = family,
-        taxon = "burrow"
+        taxon = "burrow"  # bu
       ),
       rich_climb = taxa_rich(
         long.df = x,
         unique.id.col = unique_id,
         low.taxa.col = habit,
         high.taxa.col = family,
-        taxon = "climb"
+        taxon = "climb"  # cb
       ),
       rich_cling = taxa_rich(
         long.df = x,
         unique.id.col = unique_id,
         low.taxa.col = habit,
         high.taxa.col = family,
-        taxon = "cling"
+        taxon = "cling"  # cn
       ),
       rich_collect = taxa_rich(
         long.df = x,
         unique.id.col = unique_id,
         low.taxa.col = ffg,
         high.taxa.col = family,
-        taxon = c("filter", "gather")
+        taxon = c("filter", "gather")  # cf, cg
       ),
       rich_ephemeroptera = taxa_rich(
         long.df = x,
@@ -419,14 +419,14 @@ bio_fam_metrics <- function(x) {
         unique.id.col = unique_id,
         low.taxa.col = ffg,
         high.taxa.col = family,
-        taxon = "filter"
+        taxon = "filter"  # cf
       ),
       rich_gather = taxa_rich(
         long.df = x,
         unique.id.col = unique_id,
         low.taxa.col = ffg,
         high.taxa.col = family,
-        taxon = "gather"
+        taxon = "gather"   # cg
       ),
       rich_intol = taxa_rich(
         long.df = x,
@@ -454,21 +454,21 @@ bio_fam_metrics <- function(x) {
         unique.id.col = unique_id,
         low.taxa.col = ffg,
         high.taxa.col = family,
-        taxon = "predator"
+        taxon = "predator"  # pr
       ),
       rich_shred = taxa_rich(
         long.df = x,
         unique.id.col = unique_id,
         low.taxa.col = ffg,
         high.taxa.col = family,
-        taxon = "shred"
+        taxon = "shred"   # sh
       ),
       rich_sprawl = taxa_rich(
         long.df = x,
         unique.id.col = unique_id,
         low.taxa.col = habit,
         high.taxa.col = family,
-        taxon = "sprawl"
+        taxon = "sprawl"  # sp
       ),
       rich_tol = taxa_rich(
         long.df = x,

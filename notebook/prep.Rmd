@@ -6,16 +6,16 @@ output: html_notebook
 **1. PREPARE THE DATA**
 
 Install and open the following packages/datasets.
-```{r message=FALSE}
+```{r}
 library(tidyverse)
 library(stringr)
 library(lubridate)
 library(mmir) # Download from Github (https://github.com/zsmith27/mmir), then use devtools::install_github("InterstateCommissionPotomacRiverBasin /mmir", ref = "dev", force = TRUE, quiet = TRUE)
 library(bibi2.0) # Build in R Studio
-data("hier.fwmi")
-data("attributes.fwmi")
+# data("hier.fwmi")
+# data("attributes.fwmi")
 ```
-Import the data from the Access database.
+Import the data from your Access database.
 ```{r}
 
 # USE THIS CODE IF YOU HAVE WINDOWS 64-BIT
