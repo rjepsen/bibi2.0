@@ -3,8 +3,8 @@ title: "Directions for Implementing the Chessie BIBI"
 output: html_notebook
 ---
 
-**1. PREPARE THE DATA** 
-Install and open the following packages/datasets.
+**1. PREPARE THE DATA**   
+Install and open the following packages.
 ```{r}
 library(tidyverse)
 library(stringr)
@@ -12,8 +12,8 @@ library(lubridate)
 library(mmir) # Download from Github (https://github.com/zsmith27/mmir), then use devtools::install_github("InterstateCommissionPotomacRiverBasin /mmir", ref = "dev", force = TRUE, quiet = TRUE)
 library(bibi2.0) # Build in R Studio
 ```
-Import certain tabs from your MS Access database.  
-The import process differs depending on whether you are using Windows 64-bit or 32-bit.
+Import the following tabs from your MS Access database.  
+The import process differs depending on which version of Windows is running (64-bit or 32-bit).
 ```{r}
 # WINDOWS 64-BIT
 
@@ -36,7 +36,7 @@ tab.vec <- c("TAB_EVENT", "TAB_STATIONS", "TAB_PROJECT",
 
 dbDisconnect(channel)
 
-###########################################################################################
+#---------------------------------------------------------------------------------
 
 # WINDOWS 32-BIT
 
@@ -57,14 +57,14 @@ dbDisconnect(channel)
 #RODBC::odbcCloseAll()
 
 ```
-Join the master taxa tab to the larger dataset using the tsn_final column as the key. Then, apply the bibi2.0 prep_taxa package to remove certain taxa (i.e. taxa not consistently identified among agencies/organizations.
+Join the master taxa tab to the larger dataset using the tsn_final column as the key. Then, apply the prep_taxa package from bibi2.0 to remove certain taxa (i.e. taxa not consistently identified among agencies/organizations).
 ```{r}
  tab.list$tab_taxonomic_count <- tab.list$tab_taxonomic_count %>% 
    dplyr::mutate(tsn_final = str_replace_all(tsn_final, "(?<![0-9])0+", "")) %>% 
    left_join(tab.list$tab_master_taxa_list, by = "tsn_final") %>% 
    prep_taxa() 
 ```
-Apply the bibi2.0 prep_data package to the indicated tabs (includes water quality, habitat, method prep). Output dataframe is prep.df.
+Apply the prep_data package from bibi2.0 to the indicated tabs. This package includes functions that prepare/standardize the followingt data: **1)** water quality (selecting only parameters of interest, i.e. specific conductivity, dissolved oxygen, pH); **2)** habitat (selecting parameters of interest, i.e. epifaunal substrate, bank stability, embeddedness, channel alteration, riffle/run/pool/ ratio, flow, bank vegetation, sedimentation, and then determine quality of habitat); and **3)** method (exclude data collected in Dec-Feb, excluded data collected in streams of Strahler order 5 or more, and restricting the sampling method to kick net sampling and similar). Output dataframe is prep.df.
 ```{r cache=TRUE}
 prep.df <- prep_data(tab.list$tab_taxonomic_count,
                      tab.list$tab_wq_data,
@@ -74,11 +74,11 @@ prep.df <- prep_data(tab.list$tab_taxonomic_count,
                      tab.list$tab_project,
                      tab.list$tab_huc_12,
                      agg_sample_num = TRUE,
-                     development = TRUE)
+                     development = TRUE) # think should be set to false
 
 rm(tab.list)
 ```
-Convert Functional Feeding Groups (ffg) and Habit abbreviations to full names.  
+Convert Functional Feeding Groups (ffg) and Habit abbreviations to full names. Two new columns, ffg and habit, will be added to the end of prep.df2.
 ```{r}
 prep.df2 <-
     dplyr::mutate(prep.df, ffg = case_when(
@@ -105,15 +105,16 @@ prep.df2 <-
   )
 )
 ```
-This can be skipped.
+
 ```{r eval = FALSE}
-# site.class.df <- site_classification(prep.df) # think can skip
+#Can be skipped; was for development.
+site.class.df <- site_classification(prep.df) 
 ```
-General cleaning of data; eliminating issues with duplicate values.
+General cleaning of the data, including eliminating issues with duplicate values. Output dataframe is taxa.df.
 ```{r cache=TRUE}
 taxa.df <- prep.df2 %>% # if previous skipped, should be prep.df2
   ungroup() %>% 
-  select(unique_id, icprb_bioregion_id, reporting_value,  # Previously, "category" was located as the second object, but as it was a product of the previous code, delete
+  select(unique_id, icprb_bioregion_id, reporting_value,
          final_id, 
          phylum, subphylum, class, subclass,
          order, suborder, family, subfamily, tribe, genus) %>% 
@@ -126,14 +127,15 @@ taxa.df <- prep.df2 %>% # if previous skipped, should be prep.df2
   summarize(reporting_value = sum(reporting_value)) %>% 
   ungroup()
 ```
-Probabilistic rarefaction (from mmir package). A subset of 100 samples was selected for each agency. A warning about an rlang function being deprecated will
-pop up; however, the rarefactions seems to run with no issues and the taxa.df dataframe is outputted.
+Probabilistic rarefaction as described in Appendix D (completed using mmir package). A warning about an rlang function being deprecated will
+pop up; however, this does not impact the rarefaction calculations.
 ```{r cache=TRUE}
 library(vegan)
 taxa.df <- prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)
 ```
-Can be skipped; was for development.
+
 ```{r eval=FALSE}
+# Can be skipped; was for development.
 taxa.dev <- taxa.df %>% 
   filter(category %in% c("ref", "deg"))
 
@@ -146,37 +148,30 @@ metrics.df <- taxa_seq_parallel(taxa.dev, unique_id, reporting_value,
                                 job = "pct") %>% 
   bind_cols(metrics.df)
 ```
-Can be skipped; was for development.
-```{r eval=FALSE}
 
+```{r eval=FALSE}
+#Can be skipped; was for development.
 data.table::fwrite(metrics.df, "temp_metrics.csv")
 ```
 **2. CALCULATE THE BIOLOGICAL METRICS**  
-Metrics have already been tested, and a subset of the the most suitable ones have been determined. 
-Use the following code to calculate the subsetted metrics. 
+Eighty-four biological metrics were identified and, through testing of sensitivity, range, variability, and redundancy, xxx were considered for the final index. These fifty-six are calcualted below.
 ```{r}
 library(toolbox) # Download from Github (https://github.com/zsmith27/toolbox), then use: devtools::install_github("zsmith27/toolbox")
 library(tidyverse)
 
 non_rare <- prep.df2 # non-rarefied dataframe from above
 rare <- taxa.df      # rarefied data from above
-# reference ---------------------------------------------------------------
-met.thresh.df <-
-  data.table::fread("C:/Users/RJepson/Desktop/metric_thresholds.csv") %>%
-  toolbox::prep_df() %>%
-  filter(
-    taxonomic_resolution == "family",
-    !spatial_resolution %in% c("basin", "inland", "coast")
-  ) %>%
-  arrange(taxonomic_resolution, metric)
 
-metrics <- sort(unique(met.thresh.df$metric))
-
-# Calculate all the metrics ------------------------------------------------------------
 bio_fam_metrics <- function(x,y) {
-  metrics.key <- metrics %>%
-    select(unique_id) %>%
-    distinct()
+  metrics.key <- non_rare %>%
+    select(unique_id) %>%  
+    distinct() %>%
+    arrange(unique_id)
+ 
+ # metrics.key2 <- rare %>%  
+  #  select(unique_id) %>%      # Checking to see if there are the same number of unique_ids in rare and non_rare (yes); arrange to see if in same order (yes)
+   # distinct() %>%
+    # arrange(unique_id)
 
  metrics.key %>%
     dplyr::mutate(
