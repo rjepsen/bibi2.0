@@ -158,18 +158,39 @@ Eighty-four biological metrics were identified and, through testing of sensitivi
 ```{r}
 library(toolbox) # Download from Github (https://github.com/zsmith27/toolbox), then use: devtools::install_github("zsmith27/toolbox")
 library(tidyverse)
+library(mmir)
 
-non_rare <- prep.df2 # non-rarefied dataframe from above
-rare <- taxa.df      # rarefied data from above
-
-bio_fam_metrics <- function(x,y) {
-  metrics.key <- non_rare %>%
-    select(unique_id) %>%  
-    distinct() %>%
+non_rare <- prep.df2 %>% # non-rarefied dataframe from above
     arrange(unique_id)
+
+rare <- taxa.df  %>%    # rarefied data from above
+    arrange(unique_id)
+
+ metrics.key <- non_rare %>%
+  distinct(unique_id) %>%
+   select(unique_id) %>%
+  arrange(unique_id)
+
+ x <- non_rare  # trying as non function
+metrics.key %>%
+    dplyr::mutate(
+      aspt_mod = taxa_tol_index(
+        long.df = x,
+        unique.id.col = unique_id,
+        count.col = reporting_value,
+        tol.col = aspt))
+      
+ 
+ 
+ 
+bio_fam_metrics <- function(x,y) {
+  #metrics.key <- non_rare %>%
+   # select(unique_id) %>%  
+    #distinct() %>%
+   # arrange(unique_id)
  
  # metrics.key2 <- rare %>%  
-  #  select(unique_id) %>%      # Checking to see if there are the same number of unique_ids in rare and non_rare (yes); arrange to see if in same order (yes)
+  #  select(unique_id) %>%      # Checking to see if same # of unique_ids in rare and non_rare (yes); arrange to see if in same order (yes)
    # distinct() %>%
     # arrange(unique_id)
 
@@ -485,7 +506,8 @@ bio_fam_metrics <- function(x,y) {
           "viviparidae"
         )
       ),
-      # Richness/Diversity metrics require rarefied data.
+     
+       # Richness/Diversity metrics require rarefied data.
       margalefs = taxa_div(
         long.df = y,
         unique.id.col = unique_id,
@@ -637,10 +659,11 @@ bio_fam_metrics <- function(x,y) {
         taxon = "trichoptera"
       )
     )
-  return(metrics.key)
+ return(metrics.key)
 }
 
 f.df <- bio_fam_metrics(non_rare, rare)
+
 
 ```
 **3. CLASSIFY SITE CONDITIONS AS REFERENCE, MINIMALLY DEGRADED, MIXED, MODERATELY DEGRADED, or DEGRADED**
