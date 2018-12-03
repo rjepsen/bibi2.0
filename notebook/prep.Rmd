@@ -160,10 +160,10 @@ library(toolbox) # Download from Github (https://github.com/zsmith27/toolbox), t
 library(tidyverse)
 library(mmir)
 
-prep.df2 %>%
+prep.df2 %>%  # non-rarefied data
   ungroup()
 
-taxa.df %>%
+taxa.df %>%   # rarefied data
   ungroup()
 
 non_rare <- prep.df2 %>% # non-rarefied dataframe from above
@@ -173,7 +173,7 @@ rare <- taxa.df %>%    # rarefied data from above
    arrange(unique_id) 
     
 #  metrics.key.test <- non_rare %>%
- #   select(unique_id) %>%  
+ #   select(unique_id) %>%    # Checking to see if same # of unique_ids in rare and non_rare (yes); arrange to see if in same order (yes)
  #  distinct() %>%
 #   arrange()
  
@@ -182,16 +182,12 @@ rare <- taxa.df %>%    # rarefied data from above
  # distinct() %>%
  # arrange()
 
-#metrics.key <- non_rare %>%
- # select(unique_id) %>%
-  #distinct(unique_id)
-
-  metrics.key <- non_rare %>%
+metrics.key <- non_rare %>%
     ungroup %>%
     select(unique_id) %>%
     distinct()
 
-metrics.key$aspt_mod <- taxa_tol_index(
+metrics.key$aspt_mod <- taxa_tol_index(    # the two taxa_tol_index work
   long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
@@ -203,7 +199,7 @@ metrics.key$hbi <- taxa_tol_index(
   count.col = reporting_value,
   tol.col = bibi_tv
 )
-metrics.key$pct_chironomidae <- taxa_pct(
+metrics.key$pct_chironomidae <- taxa_pct(   # error: column INDV must be length 21834
   long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
@@ -211,7 +207,7 @@ metrics.key$pct_chironomidae <- taxa_pct(
   taxon = "chironomidae"
 )
 
- ###################################################
+ ################################################### Function to calc metrics
 bio_fam_metrics <- function(x,y) {
    metrics.key <- non_rare %>%
     select(unique_id) %>%
@@ -685,7 +681,7 @@ rich_trichoptera = taxa_rich(
 return(metrics.key)
 }
 
-f.df <- bio_fam_metrics(non_rare, rare)
+metrics.df <- bio_fam_metrics(non_rare, rare)
 ```
 5. METRIC SCORING
 ```{r}
