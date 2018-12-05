@@ -699,177 +699,246 @@ metrics.df <- bio_fam_metrics(non_rare, rare)
 **5. METRIC SCORING**  
 **5.1** Subset the data by bioregion.
 ```{r}
+NAPU <- metrics.key %>%
+  filter(icprb_bioregion_id == "napu")
 
+NCA <- metrics.key %>%
+  filter(icprb_bioregion_id == "nca")
 
+CA <- metrics.key %>%
+  filter(icprb_bioregion_id == "ca")
+
+MAC<- metrics.key %>%
+  filter(icprb_bioregion_id == "mac")
+
+SEP <- metrics.key %>%
+  filter(icprb_bioregion_id == "sep")
+ 
+BLUE <- metrics.key %>%
+  filter(icprb_bioregion_id == "blue")
+
+NRV <- metrics.key %>%
+  filter(icprb_bioregion_id == "nrv")
+
+SRV <- metrics.key %>%
+  filter(icprb_bioregion_id == "srv")
+
+UNP <- metrics.key %>%
+  filter(icprb_bioregion_id == "unp")
+
+SGV <- metrics.key %>%
+  filter(icprb_bioregion_id == "sgv")
+
+LNP <- metrics.key %>%
+  filter(icprb_bioregion_id == "lnp")
+
+PIED <- metrics.key %>%
+  filter(icprb_bioregion_id == "pied")
 ```
 **5.2** Create a vector for each of the twelve bioregions that contains the names of the metrics specific to that bioregion.
 ```{r}
 #Northern Appalachian Plateau and Uplands (NAPU)
-NAPU_met.vec <- c("margalefs", 
-                  "pct_cling",
-                  "pct_collect",
-                  "pct_ephemeroptera",
-                  "pct_ept",
-                  "pct_ept_no_hydro",
-                  "pct_ept_rich_no_tol",
-                  "pct_filter",
-                  "pct_intol_0_3",
-                  "pct_non_hydrop_trichoptera",
-                  "pct_predator",
-                  "pct_scrape",
-                  "pielou",
-                  "rich_burrow",
-                  "rich_cling",
-                  "rich_gather",
-                  "rich_modtol",
-                  "rich_plecoptera",
-                  "rich_shred",
-                  "rich_sprawl")
-
+NAPU_score <- NAPU %>%
+  select(
+  "unique_id",
+  "margalefs", 
+  "pct_cling",
+  "pct_collect",
+  "pct_ephemeroptera",
+  "pct_ept",
+  "pct_ept_no_hydro",
+  "pct_ept_rich_no_tol",
+  "pct_filter",
+  "pct_intol_0_3",
+  "pct_non_hydrop_trichoptera",
+  "pct_predator",
+  "pct_scrape",
+  "pielou",
+  "rich_burrow",
+  "rich_cling",
+  "rich_gather",
+  "rich_modtol",
+  "rich_plecoptera",
+  "rich_shred",
+  "rich_sprawl")
+       
 # North Central Appalachians (NCA)
-NCA_met.vec <- c("aspt_mod",
-                 "pct_cote",
-                 "pct_ephemeroptera",
-                 "pct_heptageniidae",
-                 "pct_limestone",
-                 "rich_cling",
-                 "rich_ephemeroptera",
-                 "rich_ept",
-                 "rich_plecoptera")
+NCA_score <- NCA %>%
+  select(
+    "unique_id",
+    "aspt_mod",
+    "pct_cote",
+    "pct_ephemeroptera",
+    "pct_heptageniidae",
+    "pct_limestone",
+    "rich_cling",
+    "rich_ephemeroptera",
+    "rich_ept",
+    "rich_plecoptera")
 
 # Central Appalachians (CA)
-CA_met.vec <- c("pct_ept_rich",
-                "pct_euholognatha",
-                "pct_heptageniidae",
-                "pct_hydro_ept",
-                "pct_mod_tol_4_6",
-                "pct_non_hydrop_trichoptera",
-                "pct_pisciforma",
-                "pct_systellognatha",
-                "rich_burrow",
-                "rich_collect",
-                "rich_filter",
-                "rich_plecoptera",
-                "rich_predator")
+CA_score <- CA %>%
+  select(
+    "unique_id",
+    "pct_ept_rich",
+    "pct_euholognatha",
+    "pct_heptageniidae",
+    "pct_hydro_ept",
+    "pct_mod_tol_4_6",
+    "pct_non_hydrop_trichoptera",
+    "pct_pisciforma",
+    "pct_systellognatha",
+    "rich_burrow",
+    "rich_collect",
+    "rich_filter",
+    "rich_plecoptera",
+    "rich_predator")
 
 # Middle Atlantic Coastal Plain (MAC)
-MAC_met.vec <- c("aspt_mod",
-                 "gold",
-                 "pct_arthropoda",
-                 "pct_chironomidae",
-                 "pct_collect",
-                 "pct_mod_tol_4_6",
-                 "pct_odonata",
-                 "pct_predator",
-                 "pct_scrape",
-                 "pct_urban_intol",
-                 "rich_climb",
-                 "rich_tol")
+MAC_score <- MAC %>%
+  select(
+    "unique_id",
+    "aspt_mod",
+    "gold",
+    "pct_arthropoda",
+    "pct_chironomidae",
+    "pct_collect",
+    "pct_mod_tol_4_6",
+    "pct_odonata",
+    "pct_predator",
+    "pct_scrape",
+    "pct_urban_intol",
+    "rich_climb",
+    "rich_tol")
 
 # Southeastern Plains (SEP)
-SEP_met.vec <- c("aspt_mod",
-                 "gold",
-                 "hbi",
-                 "pct_cling",
-                 "pct_cote",
-                 "pct_ept_rich_no_tol",
-                 "rich_cling",
-                 "rich_collect",
-                 "rich_ephemeroptera",
-                 "rich_filter",
-                 "rich_tricoptera")
+SEP_score <- SEP %>%
+  select(
+    "unique_id",
+    "aspt_mod",
+    "gold",
+    "hbi",
+    "pct_cling",
+    "pct_cote",
+    "pct_ept_rich_no_tol",
+    "rich_cling",
+    "rich_collect",
+    "rich_ephemeroptera",
+    "rich_filter",
+    "rich_tricoptera")
 
 # Blue Ridge (BLUE)
-BLUE_met.vec <- c("pct_burrow",
-                  "pct_ept_rich_no_tol",
-                  "pct_scrape",
-                  "pct_systellognatha",
-                  "rich_ephemeroptera")
+BLUE_score <- BLUE %>% 
+  select(
+    "unique_id",
+    "pct_burrow",
+    "pct_ept_rich_no_tol",
+    "pct_scrape",
+    "pct_systellognatha",
+    "rich_ephemeroptera")
 
 # Northern Ridge and Valley (NRV)
-NRV_met.vec <- c("aspt_mod",
-                 "pct_ephemeroptera_no_baetid",
-                 "pct_ept_rich",
-                 "rich_collect",
-                 "rich_ephemeroptera",
-                 "rich_predator",
-                 "rich_shred",
-                 "rich_tricoptera")
+NRV_score <- NRV %>%
+  select(
+    "unique_id",
+    "aspt_mod",
+    "pct_ephemeroptera_no_baetid",
+    "pct_ept_rich",
+    "rich_collect",
+    "rich_ephemeroptera",
+    "rich_predator",
+    "rich_shred",
+    "rich_tricoptera")
 
 # Southern Ridge and Valley (SRV)
-SRV_met.vec <- c("aspt_mod",
-                 "pct_burrow",
-                 "pct_cling",
-                 "pct_cote",
-                 "pct_ephemeroptera_no_baetid",
-                 "pct_ept_rich_no_tol",
-                 "pct_predator",
-                 "pct_scrape",
-                 "rich_cling",
-                 "rich_collect",
-                 "rich_ephemeroptera",
-                 "rich_intol",
-                 "rich_plecoptera",
-                 "rich_predator",
-                 "rich_trichoptera")
+SRV_score <- SRV %>%
+  select(
+    "unique_id",
+    "aspt_mod",
+    "pct_burrow",
+    "pct_cling",
+    "pct_cote",
+    "pct_ephemeroptera_no_baetid",
+    "pct_ept_rich_no_tol",
+    "pct_predator",
+    "pct_scrape",
+    "rich_cling",
+    "rich_collect",
+    "rich_ephemeroptera",
+    "rich_intol",
+    "rich_plecoptera",
+    "rich_predator",
+    "rich_trichoptera")
 
 # Upper Northern Piedmont (UNP)
-UNP_met.vec <- c("hbi",
-                 "pct_collect",
-                 "pct_ept_rich_no_tol",
-                 "pct_filter",
-                 "pct_hexapoda",
-                 "pct_pisciforma",
-                 "pct_retreat_caddisfly",
-                 "pct_scrape",
-                 "pct_urban_intol",
-                 "rich_ephemeroptera",
-                 "rich_plecoptera",
-                 "rich_trichoptera")
+UNP_score <- UNP %>%
+  select(
+    "unique_id",
+    "hbi",
+    "pct_collect",
+    "pct_ept_rich_no_tol",
+    "pct_filter",
+    "pct_hexapoda",
+    "pct_pisciforma",
+    "pct_retreat_caddisfly",
+    "pct_scrape",
+    "pct_urban_intol",
+    "rich_ephemeroptera",
+    "rich_plecoptera",
+    "rich_trichoptera")
 
 # Southern Great Valley (SGV)
-SGV_met.vec <- c("aspt_mod",
-                 "gold",
-                 "pct_cling",
-                 "pct_collect",
-                 "pct_ephemeroptera_no_baetid",
-                 "pct_ept_no_hydro",
-                 "pct_ept_rich_no_tol",
-                 "pct_filter",
-                 "pct_heptageniidae",
-                 "pct_mod_tol_4_6",
-                 "pct_non_hydrop_trichoptera",
-                 "pct_pisciforma",
-                 "pct_predator",
-                 "pct_pterygota",
-                 "pct_scrape",
-                 "pct_sprawl",
-                 "pct_tolerant_7_10",
-                 "rich_collect",
-                 "rich_ephemeroptera",
-                 "rich_filter",
-                 "rich_trichoptera")
+SGV_score <- SGV %>%
+  select(
+    "unique_id",
+    "aspt_mod",
+    "gold",
+    "pct_cling",
+    "pct_collect",
+    "pct_ephemeroptera_no_baetid",
+    "pct_ept_no_hydro",
+    "pct_ept_rich_no_tol",
+    "pct_filter",
+    "pct_heptageniidae",
+    "pct_mod_tol_4_6",
+    "pct_non_hydrop_trichoptera",
+    "pct_pisciforma",
+    "pct_predator",
+    "pct_pterygota",
+    "pct_scrape",
+    "pct_sprawl",
+    "pct_tolerant_7_10",
+    "rich_collect",
+    "rich_ephemeroptera",
+    "rich_filter",
+    "rich_trichoptera")
 
 # Lower Northern Piedmont (LNP)
-LNP_met.vec <- c("aspt_mod",
-                 "pct_cling",
-                 "pct_collect",
-                 "pct_ept_rich",
-                 "pct_mod_tol_4_6",
-                 "pct_predator",
-                 "pct_pterygota",
-                 "rich_cling",
-                 "rich_ephemeroptera")
+LNP_score <- LNP %>%
+  select(
+    "unique_id",
+    "aspt_mod",
+    "pct_cling",
+    "pct_collect",
+    "pct_ept_rich",
+    "pct_mod_tol_4_6",
+    "pct_predator",
+    "pct_pterygota",
+    "rich_cling",
+    "rich_ephemeroptera")
 
 # Piedmont (PIED)
-PIED_met.vec <- c("pct_cling",
-                  "pct_ept_rich",
-                  "pct_intol_0_4",
-                  "pct_tolerant_7_10",
-                  "pct_urban_intol",
-                  "rich_cling",
-                  "rich_ephemeroptera",
-                  "rich_tricoptera")
+PIED_score <- PIED %>%
+  select(
+    "unique_id",
+    "pct_cling",
+    "pct_ept_rich",
+    "pct_intol_0_4",
+    "pct_tolerant_7_10",
+    "pct_urban_intol",
+    "rich_cling",
+    "rich_ephemeroptera",
+    "rich_tricoptera")
 ```
 **5.3** Score the metrics. The [Metric Thresholds](https://www.potomacriver.org/wp-content/uploads/2014/12/metric_thresholds_06292017.csv) table was used to determine whether a metric increased or decreased with disturbance, allowing for the selection of the correct scoring equation to use (Final Report, page 21). The Metric Thresholds table also contains *ref_median* and *bound* columns, which correspond to *X~M~* and *X~T~* in the equations, respectively.
 ```{r}
