@@ -140,7 +140,7 @@ taxa.df <- prep.df2 %>%
   select(unique_id, icprb_bioregion_id, reporting_value,
          final_id, 
          phylum, subphylum, class, subclass,
-         order, suborder, family, subfamily, tribe, genus) %>% 
+         order, suborder, family, subfamily, tribe, genus, habit, ffg, bibi_tv) %>%   # I added habit, ffg, bibi_tv
   group_by_at(vars(-reporting_value)) %>% 
   summarize(reporting_value = sum(reporting_value)) %>% 
   ungroup() %>% 
@@ -179,10 +179,12 @@ data.table::fwrite(metrics.df, "temp_metrics.csv")
 Once the data is in the proper format, the metrics can be calcualted quickly. The following scripts compute every metric for each of the 21,834 unique_id's. 
 ```{r}
 non_rare <- prep.df2 %>% # non-rarefied data frame from above
-   arrange(unique_id)
+   arrange(unique_id) %>%
+   ungroup()
 
 rare <- taxa.df %>%    # rarefied data frame from above
-   arrange(unique_id) 
+   arrange(unique_id) %>%
+   ungroup()
 
 # Join rarefied and non-rarefied data (not sure that this will be useful)
 DF2 <- rare %>%
@@ -200,23 +202,33 @@ joined_data <- left_join(non_rare, DF2, by="unique_id")
  # distinct() %>%
  # arrange()
 
-metrics.key <- non_rare %>%
-    ungroup %>%
-    select(unique_id) %>%
-    distinct()
- 
-metrics.key$aspt_mod <- taxa_tol_index(    # the two taxa_tol_index work
+## Metrics by hand: 
+  metrics.key2 <- non_rare %>%                # Metrics.key = df with all unique IDs and their corresponding ICPRB bioregions. Will build metrics onto.
+    select(unique_id, icprb_bioregion_id) %>%
+    unique() %>%
+    arrange(unique_id) 
+
+  metrics.key2$aspt_mod <- taxa_tol_index(    # the two taxa_tol_index work
   long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
-  tol.col = aspt
-)
-metrics.key$hbi <- taxa_tol_index(
+  tol.col = aspt)
+  
+  metrics.key2$pct_gastro_oligo <- taxa_pct(
   long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
-  tol.col = bibi_tv
-)
+  taxon.col = class,
+  taxon = c("gastropoda", "oligochatea"))
+  
+  metrics.key2$pct_diptera <- taxa_pct(
+  long.df = non_rare,
+  unique.id.col = unique_id,
+  count.col = reporting_value,
+  taxon.col = order,
+  taxon = "diptera")
+  ############### 
+
 
 #################################################### Function to calc metrics
 bio_fam_metrics <- function(x,y) {
@@ -253,7 +265,7 @@ hbi = taxa_tol_index(
   long.df = x,
   unique.id.col = unique_id,
   count.col = reporting_value,
-  tol.col = bibi.tv
+  tol.col = bibi_tv
 ),
 pct_arthropoda = taxa_pct(
   long.df = x,
@@ -695,6 +707,8 @@ return(metrics.key)
 }
 
 metrics.df <- bio_fam_metrics(non_rare, rare)
+
+## PRINT STATEMENT
 ```
 **5. METRIC SCORING**  
 **5.1** Subset the data by bioregion.
@@ -942,7 +956,26 @@ PIED_score <- PIED %>%
 ```
 **5.3** Score the metrics. The [Metric Thresholds](https://www.potomacriver.org/wp-content/uploads/2014/12/metric_thresholds_06292017.csv) table was used to determine whether a metric increased or decreased with disturbance, allowing for the selection of the correct scoring equation to use (Final Report, page 21). The Metric Thresholds table also contains *ref_median* and *bound* columns, which correspond to *X~M~* and *X~T~* in the equations, respectively.
 ```{r}
-
+NAPU_score$score_margalefs <- ((NAPU_score$margalefs - 2.74)/(2.83-2.74))*100
+NAPU_score$score_pct_cling <- ((NAPU_score$pct_cling-50.98)/(59.19-50.98))*100
+NAPU_score$score_pct_collect <- ((82-NAPU_score$pct_collect)/(82.8-71.84))*100
+NAPU_score$score_pct_ephemeroptera <- ((NAPU_score$pct_ephemeroptera-19.62)/(31.47-19.62))*100
+NAPU_score$score_pct_ept <- ((NAPU_score$pct_ept-54.08)/(62.26-54.08))*100
+NAPU_score$score_pct_ept_no_hydro <- ((NAPU_score$pct_ept_no_hydro-70.51)/(87.96-70.51))*100
+NAPU_score$score_pct_ept_rich_no_tol <- ((NAPU_score$pct_ept_rich_no_tol-32.85)/(45.32-32.85))*100
+NAPU_score$score_pct_filter <- ((22.62-NAPU_score$pct_filter)/(22.62-15.51))*100
+NAPU_score$score_pct_intol_0_3 <- ((NAPU_score$pct_intol_0_3-24.22)/(44.7-24.22))*100
+NAPU_score$score_pct_non_hydrop_trichoptera <- ((NAPU_score$pct_non_hydrop_trichoptera-20.6)/(45.08-20.6))*100
+NAPU_score$score_pct_predator <- ((6.24-NAPU_score$pct_predator)/(6.24-5.36))*100
+NAPU_score$score_pct_scrape <- ((NAPU_score$pct_scrape-6.89)/(9.36-6.89))*100
+NAPU_score$score_pielou <- ((0.80-NAPU_score$pielou)/(0.8-0.79))*100
+NAPU_score$score_rich_burrow <- ((NAPU_score$rich_burrow-1.93)/(2.95-1.93))*100
+NAPU_score$score_rich_cling <- ((NAPU_score$rich_cling-6.77)/(8-6.77))*100
+NAPU_score$score_rich_gather <- ((6.01-NAPU_score$rich_gather)/(6.01-5))*100
+NAPU_score$score_rich_modtol <- ((7.03-NAPU_score$rich_modtol)/(7.03-6.00))
+NAPU_score$score_rich_plecoptera <- ((NAPU_score$score_rich_plecoptera-0.7)/(0.7-2.13))*100
+NAPU_score$score_rich_shred <- ((NAPU_score$rich_shred-0.84)/(2-0.84))*100
+NAPU_score$score_rich_sprawl <- ((2.3-NAPU_score$rich_sprawl)/(2.3-1))*100
 
 
 
