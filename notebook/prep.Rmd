@@ -186,314 +186,270 @@ rare <- taxa.df %>%    # rarefied data frame from above
    arrange(unique_id) %>%
    ungroup()
 
-# Join rarefied and non-rarefied data (not sure that this will be useful)
-DF2 <- rare %>%
-  select(unique_id, rare_count)
+## Metric calculations:
 
-joined_data <- left_join(non_rare, DF2, by="unique_id")
-    
-#  metrics.key.test <- non_rare %>%
- #   select(unique_id) %>%    # Checking to see if same # of unique_ids in rare and non_rare (yes); arrange to see if in same order (yes)
- #  distinct() %>%
-#   arrange()
- 
- # metrics.key2.test <- rare %>%  
- #  select(unique_id) %>%      # Checking to see if same # of unique_ids in rare and non_rare (yes); arrange to see if in same order (yes)
- # distinct() %>%
- # arrange()
+metrics.key <- non_rare %>%              
+  select(unique_id, icprb_bioregion_id) %>%
+  unique() %>%
+  arrange(unique_id) 
 
-## Metrics by hand: 
-  metrics.key2 <- non_rare %>%                # Metrics.key = df with all unique IDs and their corresponding ICPRB bioregions. Will build metrics onto.
-    select(unique_id, icprb_bioregion_id) %>%
-    unique() %>%
-    arrange(unique_id) 
-
-  metrics.key2$aspt_mod <- taxa_tol_index(    # the two taxa_tol_index work
+  metrics.key$aspt_mod <- taxa_tol_index( 
   long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   tol.col = aspt)
   
-  metrics.key2$pct_gastro_oligo <- taxa_pct(
+  metrics.key$pct_gastro_oligo <- taxa_pct(
   long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = class,
   taxon = c("gastropoda", "oligochatea"))
   
-  metrics.key2$pct_diptera <- taxa_pct(
+  metrics.key$pct_diptera <- taxa_pct(
   long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
   taxon = "diptera")
-  ############### 
-
-
-#################################################### Function to calc metrics
-bio_fam_metrics <- function(x,y) {
-   
-   metrics.key <- non_rare %>%                # Metrics.key = df with all unique IDs and their corresponding ICPRB bioregions. Will build metrics onto.
-    select(unique_id, icprb_bioregion_id) %>%
-    unique() %>%
-    arrange(unique_id) 
-   
- metrics.key %>%
-    dplyr::mutate(
-aspt_mod = taxa_tol_index(
-  long.df = x,
+  
+  metrics.key$gold <- 100 - (metrics.key$pct_gastro_oligo + metrics.key$pct_diptera) # was 1-x, but in appendix, should be 100-x
+  metrics.key$hbi <- taxa_tol_index(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
-  tol.col = aspt
-),
-pct_gastro_oligo = taxa_pct(
-  long.df = x,
-  unique.id.col = unique_id,
-  count.col = reporting_value,
-  taxon.col = class,
-  taxon = c("gastropoda", "oligochatea")
-),
-pct_diptera = taxa_pct(
-  long.df = x,
-  unique.id.col = unique_id,
-  count.col = reporting_value,
-  taxon.col = order,
-  taxon = "diptera"
-),
-gold = 1 - (pct_gastro_oligo + pct_diptera),
-hbi = taxa_tol_index(
-  long.df = x,
-  unique.id.col = unique_id,
-  count.col = reporting_value,
-  tol.col = bibi_tv
-),
-pct_arthropoda = taxa_pct(
-  long.df = x,
+  tol.col = bibi_tv)
+  
+  metrics.key$pct_arthropoda <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = phylum,
-  taxon = "arthropda"
-),
-pct_burrow = taxa_pct(
-  long.df = x,
+  taxon = "arthropoda") # was a typo
+  
+  metrics.key$pct_burrow <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = habit, 
-  taxon = "burrow" 
-),
-pct_chironomidae = taxa_pct(
-  long.df = x,
+  taxon = "burrow")
+
+  metrics.key$pct_chironomidae <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = family,
-  taxon = "chironomidae"
-),
-pct_cling = taxa_pct(
-  long.df = x,
+  taxon = "chironomidae")
+
+  metrics.key$pct_cling <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = habit,
-  taxon = "cling"  
-),
-pct_burrow = taxa_pct(
-  long.df = x,
+  taxon = "cling")  
+
+  metrics.key$pct_burrow <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = habit,
-  taxon = "burrow" 
-),
-pct_collect = taxa_pct(
-  long.df = x,
+  taxon = "burrow") 
+
+  metrics.key$pct_collect <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = ffg,
-  taxon = c("filter", "gather")  
-),
-pct_cote = taxa_pct(
-  long.df = x,
+  taxon = c("filter", "gather"))
+
+  metrics.key$pct_cote <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
   taxon = c("coleoptera",
             "odonata",
             "trichoptera",
-            "ephemeroptera")
-),
-pct_ephemeroptera = taxa_pct(
-  long.df = x,
+            "ephemeroptera"))
+
+  metrics.key$pct_ephemeroptera <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
-  taxon = "ephemeroptera"
-),
-pct_baetidae = taxa_pct(
-  long.df = x,
+  taxon = "ephemeroptera")
+
+  metrics.key$pct_baetidae <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = family,
-  taxon = "baetidae"
-),
-pct_ephemeroptera_no_baetid = pct_ephemeroptera - pct_baetidae,
-pct_ept = taxa_pct(
-  long.df = x,
+  taxon = "baetidae")
+
+  metrics.key$pct_ephemeroptera_no_baetid <- metrics.key$pct_ephemeroptera - metrics.key$pct_baetidae
+
+  metrics.key$pct_ept <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
   taxon = c("ephemeroptera",
             "plecoptera",
-            "trichoptera")
-),
-pct_hydropsychidae = taxa_pct(
-  long.df = x,
+            "trichoptera"))
+
+  metrics.key$pct_hydropsychidae <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = family,
-  taxon = "hydropsychidae"
-),
-pct_ept_no_hydro = pct_ept - pct_hydropsychidae,
-pct_euholognatha = taxa_pct(
-  long.df = x,
+  taxon = "hydropsychidae")
+
+  metrics.key$pct_ept_no_hydro <- metrics.key$pct_ept - metrics.key$pct_hydropsychidae
+
+  metrics.key$pct_euholognatha <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = suborder,
-  taxon = "euholognatha"
-),
-pct_filter = taxa_pct(
-  long.df = x,
+  taxon = "euholognatha")
+
+  metrics.key$pct_filter <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = ffg,
-  taxon = "filter"  
-),
-pct_heptageniidae = taxa_pct(
-  long.df = x,
+  taxon = "filter")  
+
+  metrics.key$pct_heptageniidae <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = family,
-  taxon = "heptageniidae"
-),
-pct_hexapoda = taxa_pct(
-  long.df = x,
+  taxon = "heptageniidae")
+
+  metrics.key$pct_hexapoda <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = subphylum,
-  taxon = "hexapoda"
-),
-pct_hydro_ept = ifelse(pct_ept == 0,
-                       0,
-                       (pct_hydropsychidae / pct_ept) * 100),
-pct_intol_0_3 = taxa_pct(
-  long.df = x,
-  unique.id.col = unique_id,
-  count.col = reporting_value,
-  taxon.col = bibi_tv,  # was tol_vol
-  taxon = 0:3
-),
-pct_intol_0_4 = taxa_pct(
-  long.df = x,
+  taxon = "hexapoda")
+
+  metrics.key$pct_hydro_ept <- ifelse(metrics.key$pct_ept == 0, 0, (metrics.key$pct_hydropsychidae / metrics.key$pct_ept) * 100)
+  
+  metrics.key$pct_intol_0_3 <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = bibi_tv,
-  taxon = 0:4
-),
-pct_amph_iso = taxa_pct(
-  long.df = x,
+  taxon = 0:3)
+
+  metrics.key$pct_intol_0_4 <- taxa_pct(
+  long.df = non_rare,
+  unique.id.col = unique_id,
+  count.col = reporting_value,
+  taxon.col = bibi_tv,
+  taxon = 0:4)
+
+  metrics.key$pct_amph_iso <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
-  taxon = c("amphipoda", "isopoda")
-),
-pct_ephemerellidae = taxa_pct(
-  long.df = x,
+  taxon = c("amphipoda", "isopoda"))
+
+  metrics.key$pct_ephemerellidae <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = family,
-  taxon = "ephemerellidae"
-),
-pct_limestone = pct_amph_iso + pct_ephemerellidae,
-pct_mod_tol_4_6 = taxa_pct(
-  long.df = x,
+  taxon = "ephemerellidae")
+
+  metrics.key$pct_limestone <- metrics.key$pct_amph_iso + metrics.key$pct_ephemerellidae
+
+  metrics.key$pct_mod_tol_4_6 <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = bibi_tv,
-  taxon = 4:6
-),
-pct_trichoptera = taxa_pct(
-  long.df = x,
+  taxon = 4:6)
+
+  metrics.key$pct_trichoptera <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
-  taxon = "trichoptera"
-),
-pct_non_hydrop_trichoptera = pct_trichoptera - pct_hydropsychidae,
-pct_odonata = taxa_pct(
-  long.df = x,
+  taxon = "trichoptera")
+
+  metrics.key$pct_non_hydrop_trichoptera <- metrics.key$pct_trichoptera - metrics.key$pct_hydropsychidae
+
+  metrics.key$pct_odonata <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
-  taxon = "odonata"
-),
-pct_pisciforma = taxa_pct(
-  long.df = x,
+  taxon = "odonata")
+
+  metrics.key$pct_pisciforma <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = suborder,
-  taxon = "pisciforma"
-),
-pct_predator = taxa_pct(
-  long.df = x,
+  taxon = "pisciforma")
+
+  metrics.key$pct_predator <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = ffg,
-  taxon = "predator" 
-),
-pct_pterygota = taxa_pct(
-  long.df = x,
+  taxon = "predator") 
+
+  metrics.key$pct_pterygota <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = subclass,
-  taxon = "pterygota"
-),
-pct_retreat_caddisfly = taxa_pct(
-  long.df = x,
+  taxon = "pterygota")
+
+  metrics.key$pct_retreat_caddisfly <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = suborder,
-  taxon = "annulipalpia"
-),
-pct_scrape = taxa_pct(
-  long.df = x,
+  taxon = "annulipalpia")
+
+  metrics.key$pct_scrape = taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = ffg,
-  taxon = "scrape" 
-),
-pct_sprawl = taxa_pct(
-  long.df = x,
+  taxon = "scrape") 
+
+  metrics.key$pct_sprawl <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = habit,
-  taxon = "sprawl"  
-),
-pct_systellognatha = taxa_pct(
-  long.df = x,
+  taxon = "sprawl")  
+
+  metrics.key$pct_systellognatha <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = suborder,
-  taxon = "systellognatha"
-),
-pct_tolerant_7_10 = taxa_pct(
-  long.df = x,
+  taxon = "systellognatha")
+
+  metrics.key$pct_tolerant_7_10 <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = bibi_tv,
-  taxon = 7:10
-),
-pct_urban_intol = taxa_pct(
-  long.df = x,
+  taxon = 7:10)
+
+  metrics.key$pct_urban_intol <- taxa_pct(
+  long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
-  taxon.col = suborder,
+  taxon.col = family, # was suborder, should be family
   taxon = c(
     "aeshnidae",
     "ameletidae",
@@ -547,168 +503,160 @@ pct_urban_intol = taxa_pct(
     "taeniopterygidae",
     "tipulidae",
     "uenoidae",
-    "viviparidae"
-  )
-),
-
+    "viviparidae"))
+  
 # Richness/Diversity metrics require rarefied data.
-margalefs = taxa_div(
-  long.df = y,
+  
+  metrics.key$margalefs = taxa_div(
+  long.df = rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   low.taxa.col = NULL,
   high.taxa.col = family,
-  job = "margalef"
-),
-pct_ept_rich = taxa_pct_rich(
-  long.df = y,
+  job = "margalef")
+
+  metrics.key$pct_ept_rich <- taxa_pct_rich(
+  long.df = rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
   taxon = c("ephemeroptera", "plecoptera", "trichotpera"),
-  high.res.taxa.col = family,
-  exclusion.col = NULL,
+  high.res.taxa.col = family)
+  exclusion.col = NULL
   exclusion.vec = NULL
-),
-pct_ept_rich_no_tol = taxa_pct_rich(
-  long.df = y,
+
+  metrics.key$pct_ept_rich_no_tol <- taxa_pct_rich(
+  long.df = rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = order,
   taxon = c("ephemeroptera", "plecoptera", "trichotpera"),
   high.res.taxa.col = family,
   exclusion.col = bibi_tv,
-  exclusion.vec = 7:10
-),
-pielou = taxa_div(
-  long.df = y,
+  exclusion.vec = 7:10)
+
+  metrics.key$pielou <- taxa_div(
+  long.df = rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
   low.taxa.col = NULL,
   high.taxa.col = family,
-  job = "pielou"
-),
-rich_burrow = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = habit,
-  high.taxa.col = family,
-  taxon = "burrow"  
-),
-rich_climb = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = habit,
-  high.taxa.col = family,
-  taxon = "climb"  
-),
-rich_cling = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = habit,
-  high.taxa.col = family,
-  taxon = "cling"  
-),
-rich_collect = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = ffg,
-  high.taxa.col = family,
-  taxon = c("filter", "gather")
-),
-rich_ephemeroptera = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = order,
-  high.taxa.col = family,
-  taxon = "ephemeroptera"
-),
-rich_ept = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = habit,
-  high.taxa.col = family,
-  taxon = c("ephemeroptera",
-            "plecoptera",
-            "trichoptera")
-),
-rich_filter = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = ffg,
-  high.taxa.col = family,
-  taxon = "filter"  
-),
-rich_gather = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = ffg,
-  high.taxa.col = family,
-  taxon = "gather"   # cg
-),
-rich_intol = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = bibi_tv,
-  high.taxa.col = family,
-  taxon = 0:3
-),
-rich_modtol = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = bibi_tv,
-  high.taxa.col = family,
-  taxon = 4:6
-),
-rich_plecoptera = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = order,
-  high.taxa.col = family,
-  taxon = "plecoptera"
-),
-rich_predator = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = ffg,
-  high.taxa.col = family,
-  taxon = "predator"  
-),
-rich_shred = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = ffg,
-  high.taxa.col = family,
-  taxon = "shred"   
-),
-rich_sprawl = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = habit,
-  high.taxa.col = family,
-  taxon = "sprawl"  
-),
-rich_tol = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = bibi_tv,
-  high.taxa.col = family,
-  taxon = 7:10
-),
-rich_trichoptera = taxa_rich(
-  long.df = y,
-  unique.id.col = unique_id,
-  low.taxa.col = order,
-  high.taxa.col = family,
-  taxon = "trichoptera"
-)
-)
-return(metrics.key)
-}
+  job = "pielou")
 
-metrics.df <- bio_fam_metrics(non_rare, rare)
+  metrics.key$rich_burrow <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = habit,
+  high.taxa.col = family,
+  taxon = "burrow")  
 
-## PRINT STATEMENT
+  metrics.key$rich_climb <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = habit,
+  high.taxa.col = family,
+  taxon = "climb")  
+
+  metrics.key$rich_cling <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = habit,
+  high.taxa.col = family,
+  taxon = "cling")  
+
+  metrics.key$rich_collect <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = ffg,
+  high.taxa.col = family,
+  taxon = c("filter", "gather"))
+
+  metrics.key$rich_ephemeroptera <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = order,
+  high.taxa.col = family,
+  taxon = "ephemeroptera")
+
+  metrics.key$rich_ept <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = order, # think should be order, was habit
+  high.taxa.col = family, 
+  taxon = c("ephemeroptera", "plecoptera", "trichoptera"))
+
+  metrics.key$rich_filter <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = ffg,
+  high.taxa.col = family,
+  taxon = "filter")
+
+  metrics.key$rich_gather <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = ffg,
+  high.taxa.col = family,
+  taxon = "gather") 
+
+  metrics.key$rich_intol <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = bibi_tv,
+  high.taxa.col = family,
+  taxon = 0:3)
+
+  metrics.key$rich_modtol <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = bibi_tv,
+  high.taxa.col = family,
+  taxon = 4:6)
+
+  metrics.key$rich_plecoptera <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = order,
+  high.taxa.col = family,
+  taxon = "plecoptera")
+
+  metrics.key$rich_predator <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = ffg,
+  high.taxa.col = family,
+  taxon = "predator")  
+
+  metrics.key$rich_shred <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = ffg,
+  high.taxa.col = family,
+  taxon = "shred")   
+
+  metrics.key$rich_sprawl <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = habit,
+  high.taxa.col = family,
+  taxon = "sprawl")  
+
+  metrics.key$rich_tol <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = bibi_tv,
+  high.taxa.col = family,
+  taxon = 7:10)
+
+  metrics.key$rich_trichoptera <- taxa_rich(
+  long.df = rare,
+  unique.id.col = unique_id,
+  low.taxa.col = order,
+  high.taxa.col = family,
+  taxon = "trichoptera")
+  
+print(metrics.key)
+  
 ```
 **5. METRIC SCORING**  
 **5.1** Subset the data by bioregion.
@@ -755,19 +703,19 @@ PIED <- metrics.key %>%
 NAPU_score <- NAPU %>%
   select(
   "unique_id",
-  "margalefs", 
+  #"margalefs", 
   "pct_cling",
   "pct_collect",
   "pct_ephemeroptera",
   "pct_ept",
-  "pct_ept_no_hydro",
-  "pct_ept_rich_no_tol",
+  #"pct_ept_no_hydro",
+  #"pct_ept_rich_no_tol",
   "pct_filter",
   "pct_intol_0_3",
-  "pct_non_hydrop_trichoptera",
+  #"pct_non_hydrop_trichoptera",
   "pct_predator",
   "pct_scrape",
-  "pielou",
+  #"pielou",
   "rich_burrow",
   "rich_cling",
   "rich_gather",
@@ -794,7 +742,7 @@ NCA_score <- NCA %>%
 CA_score <- CA %>%
   select(
     "unique_id",
-    "pct_ept_rich",
+    #"pct_ept_rich",
     "pct_euholognatha",
     "pct_heptageniidae",
     "pct_hydro_ept",
@@ -955,30 +903,210 @@ PIED_score <- PIED %>%
     "rich_tricoptera")
 ```
 **5.3** Score the metrics. The [Metric Thresholds](https://www.potomacriver.org/wp-content/uploads/2014/12/metric_thresholds_06292017.csv) table was used to determine whether a metric increased or decreased with disturbance, allowing for the selection of the correct scoring equation to use (Final Report, page 21). The Metric Thresholds table also contains *ref_median* and *bound* columns, which correspond to *X~M~* and *X~T~* in the equations, respectively.
+
+NAPU Metric Scoring
 ```{r}
-NAPU_score$score_margalefs <- ((NAPU_score$margalefs - 2.74)/(2.83-2.74))*100
-NAPU_score$score_pct_cling <- ((NAPU_score$pct_cling-50.98)/(59.19-50.98))*100
-NAPU_score$score_pct_collect <- ((82-NAPU_score$pct_collect)/(82.8-71.84))*100
-NAPU_score$score_pct_ephemeroptera <- ((NAPU_score$pct_ephemeroptera-19.62)/(31.47-19.62))*100
-NAPU_score$score_pct_ept <- ((NAPU_score$pct_ept-54.08)/(62.26-54.08))*100
-NAPU_score$score_pct_ept_no_hydro <- ((NAPU_score$pct_ept_no_hydro-70.51)/(87.96-70.51))*100
-NAPU_score$score_pct_ept_rich_no_tol <- ((NAPU_score$pct_ept_rich_no_tol-32.85)/(45.32-32.85))*100
-NAPU_score$score_pct_filter <- ((22.62-NAPU_score$pct_filter)/(22.62-15.51))*100
-NAPU_score$score_pct_intol_0_3 <- ((NAPU_score$pct_intol_0_3-24.22)/(44.7-24.22))*100
-NAPU_score$score_pct_non_hydrop_trichoptera <- ((NAPU_score$pct_non_hydrop_trichoptera-20.6)/(45.08-20.6))*100
-NAPU_score$score_pct_predator <- ((6.24-NAPU_score$pct_predator)/(6.24-5.36))*100
-NAPU_score$score_pct_scrape <- ((NAPU_score$pct_scrape-6.89)/(9.36-6.89))*100
-NAPU_score$score_pielou <- ((0.80-NAPU_score$pielou)/(0.8-0.79))*100
-NAPU_score$score_rich_burrow <- ((NAPU_score$rich_burrow-1.93)/(2.95-1.93))*100
-NAPU_score$score_rich_cling <- ((NAPU_score$rich_cling-6.77)/(8-6.77))*100
-NAPU_score$score_rich_gather <- ((6.01-NAPU_score$rich_gather)/(6.01-5))*100
-NAPU_score$score_rich_modtol <- ((7.03-NAPU_score$rich_modtol)/(7.03-6.00))
-NAPU_score$score_rich_plecoptera <- ((NAPU_score$score_rich_plecoptera-0.7)/(0.7-2.13))*100
-NAPU_score$score_rich_shred <- ((NAPU_score$rich_shred-0.84)/(2-0.84))*100
-NAPU_score$score_rich_sprawl <- ((2.3-NAPU_score$rich_sprawl)/(2.3-1))*100
+NAPU_score$score_margalefs <- 
+  case_when(
+    NAPU_score$margalefs > 2.83 ~ 100,
+    NAPU_score$margalefs < 2.74 ~ 0,
+    TRUE ~ ((NAPU_score$margalefs - 2.74)/(2.83-2.74))*100)
 
+NAPU_score$score_pct_cling <- 
+  case_when(
+    NAPU_score$pct_cling > 59.19 ~ 100,
+    NAPU_score$pct_cling < 50.98 ~ 0,
+    TRUE ~ ((NAPU_score$pct_cling-50.98)/(59.19-50.98))*100)
 
+NAPU_score$score_pct_collect <- 
+   case_when(
+     NAPU_score$pct_collect < 71.84 ~ 100,
+     NAPU_score$pct_collect > 82.8 ~ 0,
+     TRUE ~ ((82.8-NAPU_score$pct_collect)/(82.8-71.84))*100)
 
+NAPU_score$score_pct_ephemeroptera <- 
+  case_when(
+    NAPU_score$pct_ephemeroptera > 31.47 ~ 100,
+    NAPU_score$pct_ephemeroptera < 19.62 ~ 0,
+    TRUE ~ ((NAPU_score$pct_ephemeroptera-19.62)/(31.47-19.62))*100)
+
+NAPU_score$score_pct_ept <- 
+  case_when(
+    NAPU_score$pct_ept > 62.26 ~ 100,
+    NAPU_score$pct_ept < 54.08 ~ 0,
+    TRUE ~ ((NAPU_score$pct_ept-54.08)/(62.26-54.08))*100)
+
+NAPU_score$score_pct_ept_no_hydro <- 
+  case_when(
+    NAPU_score$pct_ept_no_hydro > 87.96 ~ 100,
+    NAPU_score$pct_ept_no_hydro < 70.51 ~ 0,
+    TRUE ~ ((NAPU_score$pct_ept_no_hydro-70.51)/(87.96-70.51))*100)
+
+NAPU_score$score_pct_ept_rich_no_tol <- 
+  case_when(
+    NAPU_score$pct_ept_rich_no_tol > 45.32 ~ 100,
+    NAPU_score$pct_ept_rich_no_tol < 32.85 ~ 0,
+    TRUE ~ ((NAPU_score$pct_ept_rich_no_tol-32.85)/(45.32-32.85))*100)
+
+NAPU_score$score_pct_filter <- 
+  case_when(
+    NAPU_score$pct_filter < 15.51 ~ 100,
+    NAPU_score$pct_filter > 22.62 ~ 0,
+    TRUE ~ ((22.62-NAPU_score$pct_filter)/(22.62-15.51))*100)
+
+NAPU_score$score_pct_intol_0_3 <- 
+  case_when(
+    NAPU_score$pct_intol_0_3 > 44.7 ~ 100,
+    NAPU_score$pct_intol_0_3 < 24.22 ~ 0,
+    TRUE ~ ((NAPU_score$pct_intol_0_3-24.22)/(44.7-24.22))*100)
+
+NAPU_score$score_pct_non_hydrop_trichoptera <-
+  case_when(
+    NAPU_score$pct_non_hydrop_trichoptera > 45.08 ~ 100,
+    NAPU_score$pct_non_hydrop_trichoptera < 20.6 ~ 0,
+    TRUE ~ ((NAPU_score$pct_non_hydrop_trichoptera-20.6)/(45.08-20.6))*100)
+
+NAPU_score$score_pct_predator <- 
+  case_when(
+    NAPU_score$pct_predator < 5.36 ~ 100,
+    NAPU_score$pct_predator > 6.24 ~ 0,        
+    TRUE ~ ((6.24-NAPU_score$pct_predator)/(6.24-5.36))*100)
+
+NAPU_score$score_pct_scrape <- 
+  case_when(
+    NAPU_score$pct_scrape > 9.36 ~ 100,
+    NAPU_score$pct_scrape < 6.89 ~ 0,
+    TRUE ~ ((NAPU_score$pct_scrape-6.89)/(9.36-6.89))*100)
+
+NAPU_score$score_pielou <- 
+  case_when(
+    NAPU_score$pielou < 0.89 ~ 100,
+    NAPU_score$pielou > 0.80 ~ 0,
+    TRUE ~ ((0.80-NAPU_score$pielou)/(0.80-0.79))*100)
+
+NAPU_score$score_rich_burrow <- 
+  case_when(
+    NAPU_score$rich_burrow > 2.95 ~ 100,
+    NAPU_score$rich_burrow < 1.93 ~ 0,
+    TRUE ~ ((NAPU_score$rich_burrow-1.93)/(2.95-1.93))*100)
+
+NAPU_score$score_rich_cling <- 
+  case_when(
+    NAPU_score$rich_cling > 8.0 ~ 100,
+    NAPU_score$rich_cling < 6.77 ~ 0,
+    TRUE ~ ((NAPU_score$rich_cling-6.77)/(8.0-6.77))*100)
+
+NAPU_score$score_rich_gather <- 
+  case_when(
+    NAPU_score$rich_gather < 5.0 ~ 100,
+    NAPU_score$rich_gather > 6.01 ~ 0,
+    TRUE ~ ((6.01-NAPU_score$rich_gather)/(6.01-5.0))*100)
+
+NAPU_score$score_rich_modtol <- 
+  case_when(
+     NAPU_score$rich_modtol < 6.0 ~ 100,
+     NAPU_score$rich_modtol > 7.03 ~ 0,
+     TRUE ~ ((7.03-NAPU_score$rich_modtol)/(7.03-6.0))*100)
+
+NAPU_score$score_rich_plecoptera <- 
+  case_when(
+    NAPU_score$rich_plecoptera > 2.13 ~ 100,
+    NAPU_score$rich_plecoptera < 0.70 ~ 0,
+    TRUE ~ ((NAPU_score$rich_plecoptera-0.70)/(2.13-0.70))*100)
+
+NAPU_score$score_rich_shred <- 
+  case_when(
+    NAPU_score$rich_shred > 2.0 ~ 100,
+    NAPU_score$rich_shred < 0.84 ~ 0,
+    TRUE ~ ((NAPU_score$rich_shred-0.84)/(2.0-0.84))*100)
+
+NAPU_score$score_rich_sprawl <- 
+  case_when(
+    NAPU_score$rich_sprawl < 1.0 ~ 100,
+    NAPU_score$rich_sprawl > 2.3 ~ 0,
+    TRUE ~ ((2.3-NAPU_score$rich_sprawl)/(2.3-1.0))*100)
+```
+NCA Metric Scoring
+```{r}
+NCA_score$score_aspt_mod <-
+  case_when(
+    NCA_score$aspt_mod > 7.54 ~ 100,
+    NCA_score$aspt_mod <6.67 ~ 0,
+    TRUE ~ ((NCA_score$aspt_mod - 6.67)/(7.54-6.67))*100)
+  
+NCA_score$score_pct_cote <-
+  case_when(
+    NCA_score$pct_cote > 63.95 ~ 100,
+    NCA_score$pct_cote < 47.71 ~ 0,
+    TRUE ~ ((NCA_score$pct_cote - 47.71)/(63.95-47.71))*100)
+
+NCA_score$score_pct_ephemeroptera <-
+  case_when(
+    NCA_score$pct_ephemeroptera > 40.73 ~ 100,
+    NCA_score$pct_ephemeroptera < 9.02 ~ 0,
+    TRUE ~ ((NCA_score$pct_ephemeroptera - 9.02)/(40.73-9.02))*100)
+
+NCA_score$score_pct_heptageniidae <-
+  case_when(
+   NCA_score$pct_heptageniidae > 13.72 ~ 100,
+   NCA_score$pct_heptageniidae  < 0 ~ 0,
+   TRUE ~ ((NCA_score$pct_heptageniidae - 0)/(13.72-0))*100)
+
+NCA_score$score_pct_limestone <-
+  case_when(
+    NCA_score$pct_limestone > 8.93 ~ 100,
+    NCA_score$pct_limestone < 0 ~ 0,
+    TRUE ~ ((NCA_score$pct_limestone - 0)/(8.93-0))*100)
+
+NCA_score$score_rich_cling <-
+  case_when(
+    NCA_score$rich_cling > 10 ~ 100,
+    NCA_score$rich_cling < 7.75 ~ 0,
+    TRUE ~ ((NCA_score$rich_cling-7.75)/(10-7.75))*100)
+
+NCA_score$score_rich_ephemeroptera <- 
+  case_when(
+    NCA_score$rich_ephemeroptera > 4 ~ 100,
+    NCA_score$rich_ephemeroptera < 3.83 ~ 0,
+    TRUE ~ ((NCA_score$rich_ephemeroptera - 3.83)/(4-3.83))*100)
+
+NCA_score$score_rich_ept <-
+  case_when(
+    NCA_score$rich_ept > 12 ~ 100,
+    NCA_score$rich_ept < 8.02 ~ 0,
+    TRUE ~ ((NCA_score$rich_ept-8.02)/(12-8.02))*100)
+
+NCA_score$score_rich_plecoptera <-
+  case_when(
+    NCA_score$rich_plecoptera > 3.45 ~ 100,
+    NCA_score$rich_plecoptera < 4.04 ~ 0,
+    TRUE ~ ((NCA_score$rich_plecoptera - 3.45)/(4.04-3.45))*100)
+```
+CA Metric Scoring
+```{r}
+CA_score$score_pct_ept_rich <-
+  case_when(
+    CA_score$pct_ept_rich > 66.82 ~ 100,
+    CA_score$pct_ept_rich < 56.82 ~ 0,
+    TRUE ~ ((CA_score$pct_ept_rich-56.82)/(66.82-56.82))*100)
+
+CA_score$score_pct_euholognatha <-
+  case_when(
+    CA_score$pct_euholognatha > 17.98 ~ 100,
+    CA_score$pct_euholognatha < 0.23 ~ 0,
+    TRUE ~ ((CA_score$pct_euholognatha-0.23)/(19.98-0.23))*100)
+
+CA_score$score_pct_heptageniidae <-
+  case_when(
+    CA_score$pct_heptageniidae > 6.69 ~ 100,
+    CA_score$pct_heptageniidae < 0 ~ 0,
+    TRUE ~ ((CA_score$pct_heptageniidae-0)/(6.69-0))*100)
+
+CA_score$score_pct_hydro_ept <-
+  case_when(
+    CA_score$pct_hydro_ept < 12.5 ~ 100,
+    CA_score$pct_hydro_ept > 21.73 ~ 0,
+    TRUE ~ ((21.73-CA_score$pct_hydro_ept)/(21.73-12.5))*100)
 
 ```
 6. INDEX CONSTRUCTION
