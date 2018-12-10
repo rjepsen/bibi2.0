@@ -782,19 +782,19 @@ SEP_score <- SEP %>%
     "hbi",
     "pct_cling",
     "pct_cote",
-    "pct_ept_rich_no_tol",
+    #"pct_ept_rich_no_tol",
     "rich_cling",
     "rich_collect",
     "rich_ephemeroptera",
     "rich_filter",
-    "rich_tricoptera")
+    "rich_trichoptera")
 
 # Blue Ridge (BLUE)
 BLUE_score <- BLUE %>% 
   select(
     "unique_id",
     "pct_burrow",
-    "pct_ept_rich_no_tol",
+    #"pct_ept_rich_no_tol",
     "pct_scrape",
     "pct_systellognatha",
     "rich_ephemeroptera")
@@ -805,12 +805,12 @@ NRV_score <- NRV %>%
     "unique_id",
     "aspt_mod",
     "pct_ephemeroptera_no_baetid",
-    "pct_ept_rich",
+    #"pct_ept_rich",
     "rich_collect",
     "rich_ephemeroptera",
     "rich_predator",
     "rich_shred",
-    "rich_tricoptera")
+    "rich_trichoptera")
 
 # Southern Ridge and Valley (SRV)
 SRV_score <- SRV %>%
@@ -821,7 +821,7 @@ SRV_score <- SRV %>%
     "pct_cling",
     "pct_cote",
     "pct_ephemeroptera_no_baetid",
-    "pct_ept_rich_no_tol",
+    #"pct_ept_rich_no_tol",
     "pct_predator",
     "pct_scrape",
     "rich_cling",
@@ -838,7 +838,7 @@ UNP_score <- UNP %>%
     "unique_id",
     "hbi",
     "pct_collect",
-    "pct_ept_rich_no_tol",
+    #"pct_ept_rich_no_tol",
     "pct_filter",
     "pct_hexapoda",
     "pct_pisciforma",
@@ -859,7 +859,7 @@ SGV_score <- SGV %>%
     "pct_collect",
     "pct_ephemeroptera_no_baetid",
     "pct_ept_no_hydro",
-    "pct_ept_rich_no_tol",
+    #"pct_ept_rich_no_tol",
     "pct_filter",
     "pct_heptageniidae",
     "pct_mod_tol_4_6",
@@ -1108,6 +1108,560 @@ CA_score$score_pct_hydro_ept <-
     CA_score$pct_hydro_ept > 21.73 ~ 0,
     TRUE ~ ((21.73-CA_score$pct_hydro_ept)/(21.73-12.5))*100)
 
+CA_score$score_pct_mod_tol_4_6 <- 
+  case_when(
+    CA_score$pct_mod_tol_4_6 < 43.04 ~ 100,
+    CA_score$pct_mod_tol_4_6 > 57.26 ~ 0,
+    TRUE ~ ((57.26-CA_score$pct_mod_tol_4_6)/(57.26-43.04))*100)
+
+CA_score$score_pct_non_hydrop_trichoptera <-
+  case_when(
+    CA_score$pct_non_hydrop_trichoptera > 40.4 ~ 100,
+    CA_score$pct_non_hydrop_trichoptera < 25.02 ~ 0,
+    TRUE ~ ((CA_score$pct_non_hydrop_trichoptera - 25.02)/(40.4-25.02))*100)
+
+CA_score$score_pct_pisciforma <-
+  case_when(
+    CA_score$pct_pisciforma > 12.33 ~ 100,
+    CA_score$pct_pisciforma < 5.49 ~ 0,
+    TRUE ~ ((CA_score$pct_pisciforma-5.49)/(12.33-5.49))*100)
+
+CA_score$score_pct_systellognatha <-
+  case_when(
+    CA_score$pct_systellognatha > 5.44 ~ 100,
+    CA_score$pct_systellognatha < 0.08 ~ 0,
+    TRUE ~ ((CA_score$pct_systellognatha-0.08)/(5.44-0.08))*100)
+
+CA_score$score_rich_burrow <- 
+  case_when(
+    CA_score$rich_burrow > 3 ~ 100,
+    CA_score$rich_burrow < 1.4 ~ 0,
+    TRUE ~ ((CA_score$rich_burrow-1.4)/(3-1.4))*100)
+
+CA_score$score_rich_collect <- 
+  case_when(
+    CA_score$rich_collect > 7 ~ 100,
+    CA_score$rich_collect < 5.13 ~ 0,
+    TRUE ~ ((CA_score$rich_collect-5.13)/(7-5.13))*100)
+
+CA_score$score_rich_filter <-
+  case_when(
+    CA_score$rich_filter > 2.91 ~ 100,
+    CA_score$rich_filter < 1.38 ~ 0,
+    TRUE ~ ((CA_score$rich_filter-1.38)/(2.91-1.38))*100)
+
+CA_score$score_rich_plecoptera <-
+  case_when(
+    CA_score$rich_plecoptera > 4 ~ 100,
+    CA_score$rich_plecoptera < 0.47 ~ 0,
+    TRUE ~ ((CA_score$rich_plecoptera-0.47)/(4-0.47))*100)
+
+CA_score$score_rich_predator <- 
+  case_when(
+    CA_score$rich_predator > 3 ~ 100,
+    CA_score$rich_predator < 1.44 ~ 0,
+    TRUE ~ ((CA_score$rich_predator-1.44)/(3-1.44))*100)
+```
+MAC Metric Scoring
+```{r}
+MAC_score$score_aspt_mod <-
+  case_when(
+    MAC_score$aspt_mod > 3.27 ~ 100,
+    MAC_score$aspt_mod < 2.9 ~ 0,
+    TRUE ~ ((MAC_score$aspt_mod-2.9)/(3.27-2.9))*100)
+
+MAC_score$score_gold <-
+  case_when(
+    MAC_score$gold > 58.96 ~ 100,
+    MAC_score$gold < 33.91 ~ 0,
+    TRUE ~ ((MAC_score$gold-33.91)/(58.96-33.91))*100)
+
+MAC_score$score_pct_arthropoda <-
+  case_when(
+    MAC_score$pct_arthropoda < 74.01 ~ 100,
+    MAC_score$pct_arthropoda > 95.38 ~ 0,
+    TRUE ~ ((95.38-MAC_score$pct_arthropoda)/(95.38-74.01))*100)
+
+MAC_score$score_pct_chironomidae <-
+  case_when(
+    MAC_score$pct_chironomidae < 23.01 ~ 100,
+    MAC_score$pct_chironomidae > 42.68 ~ 0,
+    TRUE ~ ((42.68-MAC_score$pct_chironomidae)/(42.68-23.01))*100)
+  
+MAC_score$score_pct_collect <-
+  case_when(
+    MAC_score$pct_collect < 73.25 ~ 100,
+    MAC_score$pct_collect > 96.19 ~ 0,
+    TRUE ~ ((96.19 - MAC_score$pct_collect)/(96.19-73.25))*100)
+
+MAC_score$score_pct_mod_tol_4_6 <-
+  case_when(
+    MAC_score$pct_mod_tol_4_6 < 52.49 ~ 100,
+    MAC_score$pct_mod_tol_4_6 > 75.48 ~ 0,
+    TRUE ~ ((75.48-MAC_score$pct_mod_tol_4_6)/(75.48-52.49))*100)
+
+MAC_score$score_pct_odonata <-
+  case_when(
+    MAC_score$pct_odonata > 1.82 ~ 100,
+    MAC_score$pct_odonata < 0.43 ~ 0,
+    TRUE ~ ((MAC_score$pct_odonata - 0.43)/(1.82-0.43))*100)
+
+MAC_score$score_pct_predator <-
+  case_when(
+    MAC_score$pct_predator > 5.16 ~ 100,
+    MAC_score$pct_predator < 4.01 ~ 0,
+    TRUE ~ ((MAC_score$pct_predator - 4.01)/(5.16-4.01))*100)
+
+MAC_score$score_pct_scrape <-
+  case_when(
+    MAC_score$pct_scrape > 12.07 ~ 100,
+    MAC_score$pct_scrape < 0 ~ 0,
+    TRUE ~ ((MAC_score$pct_scrape-0)/(12.07-0))*100)
+
+MAC_score$score_pct_urban_intol <-
+  case_when(
+    MAC_score$pct_urban_intol < 65.28 ~ 100,
+    MAC_score$pct_urban_intol > 71.78 ~ 0,
+    TRUE ~ ((71.78-MAC_score$pct_urban_intol)/(71.78-65.28))*100)
+
+MAC_score$score_rich_climb <-
+  case_when(
+    MAC_score$rich_climb > 2.45 ~ 100,
+    MAC_score$rich_climb < 0 ~ 0,
+    TRUE ~ ((MAC_score$rich_climb-0)/(2.45-0))*100)
+
+MAC_score$score_rich_tol <-
+  case_when(
+    MAC_score$rich_tol > 4 ~ 100,
+    MAC_score$rich_tol < 2.16 ~ 0,
+    TRUE ~ ((MAC_score$rich_tol-2.16)/(4-2.16))*100)
+```
+SEP Metric Scoring
+```{r}
+SEP_score$score_aspt_mod <-
+  case_when(
+    SEP_score$aspt_mod > 4.65 ~ 100,
+    SEP_score$aspt_mod < 3.18 ~ 0,
+    TRUE ~ ((SEP_score$aspt_mod-3.18)/(4.65-3.18))*100)
+
+SEP_score$score_gold <-
+  case_when(
+    SEP_score$gold > 50.3 ~ 100,
+    SEP_score$gold < 32.16 ~ 0,
+    TRUE ~ ((SEP_score$gold-32.16)/(50.3-32.16))*100)
+
+SEP_score$score_hbi <-
+  case_when(
+    SEP_score$hbi < 5.12 ~ 100,
+    SEP_score$hbi > 5.86 ~ 0,
+    TRUE ~ ((5.86-SEP_score$hbi)/(5.86-5.12))*100)
+
+SEP_score$pct_cling <-
+  case_when(
+    SEP_score$pct_cling > 43.05 ~ 100,
+    SEP_score$pct_cling < 0 ~ 0,
+    TRUE ~ ((SEP_score$pct_cling-0)/(43.05-0))*100)
+
+SEP_score$score_pct_cote <-
+  case_when(
+    SEP_score$pct_cote > 26.37 ~ 100,
+    SEP_score$pct_cote < 1.62 ~ 0,
+    TRUE ~ ((SEP_score$pct_cote-1.62)/(26.37-1.62))*100)
+
+SEP_score$score_pct_ept_rich_no_tol <-
+  case_when(
+    SEP_score$pct_ept_rich_no_tol > 24.73 ~ 100,
+    SEP_score$pct_ept_rich_no_tol < 16.49 ~ 0,
+    TRUE ~ ((SEP_score$pct_ept_rich_no_tol-16.49)/(24.73-16.49))*100)
+
+SEP_score$score_rich_cling <-
+  case_when(
+    SEP_score$rich_cling > 4.93 ~ 100,
+    SEP_score$rich_cling < 1.03 ~ 0,
+    TRUE ~ ((SEP_score$rich_cling-1.03)/(4.93-1.03))*100)
+
+SEP_score$score_rich_collect <-
+  case_when(
+    SEP_score$rich_collect > 8 ~ 100,
+    SEP_score$rich_collect < 4.62 ~ 0,
+    TRUE ~ ((SEP_score$rich_collect-4.62)/(8-4.62))*100)
+
+SEP_score$score_rich_ephemeroptera <-
+  case_when(
+    SEP_score$rich_ephemeroptera > 2 ~ 100,
+    SEP_score$rich_ephemeroptera < 0 ~ 0,
+    TRUE ~ ((SEP_score$rich_ephemeroptera-0)/(2-0))*100)
+
+SEP_score$score_rich_filter <-
+  case_when(
+    SEP_score$rich_filter  > 2.31 ~ 100,
+    SEP_score$rich_filter < 0.04 ~ 0,
+    TRUE ~ ((SEP_score$rich_filter-0.04)/(2.31-0.04))*100)
+
+SEP_score$score_rich_trichoptera <-
+  case_when(
+    SEP_score$rich_trichoptera > 2 ~ 100,
+    SEP_score$rich_trichoptera < 0.41 ~ 0,
+    TRUE ~ ((SEP_score$rich_trichoptera-0.41)/(2-0.41))*100)
+```
+BLUE Metric Scoring
+```{r}
+BLUE_score$score_pct_burrow <-
+  case_when(
+    BLUE_score$pct_burrow < 12.65 ~ 100,
+    BLUE_score$pct_burrow > 40.71 ~ 0,
+    TRUE ~ ((40.71-BLUE_score$pct_burrow)/(40.71-12.65))*100)
+
+BLUE_score$score_pct_ept_rich_no_tol <-
+  case_when(
+    BLUE_score$pct_ept_rich_no_tol > 52.78 ~ 100,
+    BLUE_score$pct_ept_rich_no_tol < 34.74 ~ 0,
+    TRUE ~ ((BLUE_score$pct_ept_rich_no_tol-34.74)/(52.78-34.74))*100)
+
+BLUE_score$score_pct_scrape <-
+  case_when(
+    BLUE_score$pct_scrape > 15.23 ~ 100,
+    BLUE_score$pct_scrape < 0 ~ 0,
+    TRUE ~ ((BLUE_score$pct_scrape-0)/(15.23-0))*100)
+
+BLUE_score$score_pct_systellognatha <-
+  case_when(
+    BLUE_score$pct_systellognatha > 6.06 ~ 100,
+    BLUE_score$pct_systellognatha < 0 ~ 0,
+    TRUE ~ ((BLUE_score$pct_systellognatha-0)/(6.06-0))*100)
+
+BLUE_score$score_rich_ephemeroptera <-
+  case_when(
+    BLUE_score$rich_ephemeroptera > 4 ~ 100,
+    BLUE_score$rich_ephemeroptera < 0.33 ~ 0,
+    TRUE ~ ((BLUE_score$rich_ephemeroptera-0.33)/(4-0.33))*100)
+```
+NRV Metric Scoring
+```{r}
+NRV_score$score_aspt_mod <-
+  case_when(
+    NRV_score$aspt_mod > 6.27 ~ 100,
+    NRV_score$aspt_mod < 4.59 ~ 0,
+    TRUE ~ ((NRV_score$aspt_mod-4.59)/(6.27-4.59))*100)
+
+NRV_score$score_pct_ephemeroptera_no_baetid <-
+  case_when(
+    NRV_score$pct_ephemeroptera_no_baetid > 23.69 ~ 100,
+    NRV_score$pct_ephemeroptera_no_baetid < 6.01 ~ 0,
+    TRUE ~ ((NRV_score$pct_ephemeroptera_no_baetid-6.01)/(23.69-6.01))*100)
+
+NRV_score$score_pct_ept_rich <-
+  case_when(
+    NRV_score$pct_ept_rich > 64.7 ~ 100,
+    NRV_score$pct_ept_rich < 47.53 ~ 0,
+    TRUE ~ ((NRV_score$pct_ept_rich-64.7)/(64.7-47.53))*100)
+
+NRV_score$score_rich_collect <-
+  case_when(
+    NRV_score$rich_collect > 8 ~ 100,
+    NRV_score$rich_collect < 7.14 ~ 0,
+    TRUE ~ ((NRV_score$rich_collect-7.14)/(8-7.14))*100)
+
+NRV_score$score_rich_ephemeroptera <-
+  case_when(
+    NRV_score$rich_ephemeroptera > 4 ~ 100,
+    NRV_score$rich_ephemeroptera < 1.8 ~ 0,
+    TRUE ~ ((NRV_score$rich_ephemeroptera-1.8)/(4-1.8))*100)
+
+NRV_score$score_rich_predator <-
+  case_when(
+    NRV_score$rich_predator > 3 ~ 100,
+    NRV_score$rich_predator < 0.32 ~ 0,
+    TRUE ~ ((NRV_score$rich_predator-0.32)/(3-0.32))*100)
+
+NRV_score$score_rich_shred <-
+  case_when(
+    NRV_score$rich_shred > 2 ~ 100,
+    NRV_score$rich_shred < 1.27 ~ 0,
+    TRUE ~ ((NRV_score$rich_shred-1.27)/(2-1.27))*100)
+
+NRV_score$score_rich_trichoptera <-
+  case_when(
+    NRV_score$rich_trichoptera > 3 ~ 100,
+    NRV_score$rich_trichoptera < 2.53 ~ 0,
+    TRUE ~ ((NRV_score$rich_trichoptera-2.53)/(3-2.53))*100)
+```
+UNP Metric Scoring
+```{r}
+UNP_score$score_hbi <-
+  case_when(
+    UNP_score$hbi < 4.01 ~ 100,
+    UNP_score$hbi > 5.74 ~ 0,
+    TRUE ~ ((5.74-UNP_score$hbi)/(5.74-4.01))*100)
+
+UNP_score$score_pct_collect <-
+  case_when(
+    UNP_score$pct_collect < 80.32 ~ 100,
+    UNP_score$pct_collect > 90.97 ~ 0,
+    TRUE ~ ((90.97-UNP_score$pct_collect)/(90.97-80.32))*100)
+
+UNP_score$score_pct_ept_rich_no_tol <-
+  case_when(
+    UNP_score$pct_ept_rich_no_tol > 37.09 ~ 100,
+    UNP_score$pct_ept_rich_no_tol < 22.1 ~ 0,
+    TRUE ~ ((UNP_score$pct_ept_rich_no_tol-22.1)/(37.09-22.1))*100)
+
+UNP_score$score_pct_filter <-
+  case_when(
+    UNP_score$pct_filter > 18.14 ~ 100,
+    UNP_score$pct_filter < 1.91 ~ 0,
+    TRUE ~ ((UNP_score$pct_filter - 1.91)/(18.48-1.91))*100)
+
+UNP_score$score_pct_hexapoda <-
+  case_when(
+    UNP_score$pct_hexapoda > 99.5 ~ 100,
+    UNP_score$pct_hexapoda < 96.59 ~ 0,
+    TRUE ~ ((UNP_score$pct_hexapoda-96.59)/(99.5-96.59))*100)
+
+UNP_score$score_pct_pisciforma <-
+  case_when(
+    UNP_score$pct_pisciforma > 9.43 ~ 100,
+    UNP_score$pct_pisciforma < 0 ~ 0,
+    TRUE ~ ((UNP_score$pct_pisciforma-0)/(10.97-0))*100)
+
+UNP_score$score_pct_retreat_caddisfly <-
+  case_when(
+    UNP_score$pct_retreat_caddisfly > 10.97 ~ 100,
+    UNP_score$pct_retreat_caddisfly < 2.89 ~ 0,
+    TRUE ~ ((UNP_score$pct_retreat_caddisfly-2.89)/(10.97-2.89))*100)
+
+UNP_score$score_pct_scrape <-
+  case_when(
+    UNP_score$pct_scrape > 5.72 ~ 100,
+    UNP_score$pct_scrape < 0.22 ~ 0,
+    TRUE ~ ((UNP_score$pct_scrape-0.22)/(5.72-0.22))*100)
+
+UNP_score$score_pct_urban_intol <- 
+  case_when(
+    UNP_score$pct_urban_intol > 98.46 ~ 100,
+    UNP_score$pct_urban_intol < 91.71 ~ 0,
+    TRUE ~ ((UNP_score$pct_urban_intol-91.71)/(98.46-91.71))*100)
+
+UNP_score$score_rich_ephemeroptera <-
+  case_when(
+    UNP_score$rich_ephemeroptera > 3 ~ 100,
+    UNP_score$rich_ephemeroptera < 1.44 ~ 0,
+    TRUE ~ ((UNP_score$rich_ephemeroptera-1.44)/(3-1.44))*100)
+
+UNP_score$score_rich_plecoptera <-
+  case_when(
+    UNP_score$rich_plecoptera > 2.23 ~ 100,
+    UNP_score$rich_plecoptera < 0 ~ 0,
+    TRUE ~ ((UNP_score$rich_plecoptera-0)/(2.23-0))*100)
+
+UNP_score$score_rich_trichoptera <-
+  case_when(
+    UNP_score$rich_trichoptera > 3 ~ 100,
+    UNP_score$rich_trichoptera < 1.01 ~ 0,
+    TRUE ~ ((UNP_score$rich_trichoptera-1.01)/(3-1.01))*100)
+```
+SRV Metric Scoring
+```{r}
+SRV_score$score_aspt_mod <-
+  case_when(
+    SRV_score$aspt_mod > 6.44 ~ 100,
+    SRV_score$aspt_mod < 4.95 ~ 0,
+    TRUE ~ ((SRV_score$aspt_mod-4.95)/(6.44-4.95))*100)
+
+SRV_score$score_pct_burrow <-
+  case_when(
+    SRV_score$pct_burrow < 17.13 ~ 100,
+    SRV_score$pct_burrow > 31.28 ~ 0,
+    TRUE ~ ((31.28-SRV_score$pct_burrow)/(31.28-17.13))*100)
+
+SRV_score$score_pct_cling <-
+  case_when(
+    SRV_score$pct_cling > 58.45 ~ 100,
+    SRV_score$pct_cling < 40.16 ~ 100,
+    TRUE ~ ((SRV_score$pct_cling-40.16)/(58.45-40.16))*100)
+
+SRV_score$score_pct_cote <-
+  case_when(
+    SRV_score$pct_cote > 57.55 ~ 100,
+    SRV_score$pct_cote < 43.78 ~ 0,
+    TRUE ~ ((SRV_score$pct_cote-43.78)/(57.55-43.78))*100)
+
+SRV_score$score_pct_ephemeroptera_no_baetid <-
+  case_when(
+    SRV_score$pct_ephemeroptera_no_baetid > 21 ~ 100,
+    SRV_score$pct_ephemeroptera_no_baetid < 2.8 ~ 0,
+    TRUE ~ ((SRV_score$pct_ephemeroptera_no_baetid-2.8)/(21-2.8))*100)
+
+SRV_score$score_pct_ept_rich_no_tol <-
+  case_when(
+    SRV_score$pct_ept_rich_no_tol > 47.16 ~ 100,
+    SRV_score$pct_ept_rich_no_tol < 34.94 ~ 0,
+    TRUE ~ ((SRV_score$pct_ept_rich_no_tol-34.94)/(47.16-34.94))*100)
+
+SRV_score$score_pct_predator <-
+  case_when(
+    SRV_score$pct_predator > 7.12 ~ 100,
+    SRV_score$pct_predator < 2.24 ~ 0,
+    TRUE ~ ((SRV_score$pct_predator-2.24)/(7.12-2.24))*100)
+
+SRV_score$score_pct_scrape <-
+  case_when(
+    SRV_score$pct_scrape > 10.88 ~ 100,
+    SRV_score$pct_scrape < 0.47 ~ 0,
+    TRUE ~ ((SRV_score$pct_scrape-0.47)/(10.88-0.47))*100)
+
+SRV_score$score_rich_cling <- 
+  case_when(
+    SRV_score$rich_cling > 8.43 ~ 100,
+    SRV_score$rich_cling < 6.16 ~ 0,
+    TRUE ~ ((SRV_score$rich_cling-6.16)/(8.43-6.16))*100)
+
+SRV_score$score_rich_collect <-
+  case_when(
+    SRV_score$rich_collect > 7.97 ~ 100,
+    SRV_score$rich_collect < 6.02 ~ 0,
+    TRUE ~ ((SRV_score$rich_collect-6.02)/(7.97-6.02))*100)
+
+SRV_score$score_rich_ephemeroptera <-
+  case_when(
+    SRV_score$rich_ephemeroptera > 4 ~ 100,
+    SRV_score$rich_ephemeroptera < 3.66 ~ 0,
+    TRUE ~ ((SRV_score$rich_ephemeroptera-3.66)/(4-3.66))*100)
+
+SRV_score$score_rich_intol <-
+  case_when(
+    SRV_score$rich_intol > 8 ~ 100,
+    SRV_score$rich_intol < 4.15 ~ 0,
+    TRUE ~ ((SRV_score$rich_intol-4.15)/(8-4.15))*100)
+
+SRV_score$score_rich_plecoptera <-
+  case_when(
+    SRV_score$rich_plecoptera > 3 ~ 100,
+    SRV_score$rich_plecoptera < 0.65 ~ 0,
+    TRUE ~ ((SRV_score$rich_plecoptera-0.65)/(3-0.65))*100)
+
+SRV_score$score_rich_predator <-
+  case_when(
+    SRV_score$rich_predator > 3 ~ 100,
+    SRV_score$rich_predator < 2.72 ~ 0,
+    TRUE ~ ((SRV_score$rich_predator-2.72)/(3-2.72))*100)
+
+SRV_score$score_rich_trichoptera <-
+  case_when(
+    SRV_score$rich_trichoptera > 3 ~ 100,
+    SRV_score$rich_trichoptera < 2.79 ~ 0,
+    TRUE ~ ((SRV_score$rich_trichoptera-2.79)/(3-2.79))*100)
+```
+SGV Metric Scoring
+```{r}
+SGV_score$score_aspt_mod <-
+  case_when(
+    SGV_score$aspt_mod > 6.44 ~ 100,
+    SGV_score$aspt_mod < 3.94 ~ 0,
+    TRUE ~ ((SGV_score$aspt_mod-3.94)/(6.44-3.94))*100)
+
+SGV_score$score_gold <-
+  case_when(
+    SGV_score$gold > 80.89 ~ 100,
+    SGV_score$gold < 64.95 ~ 0,
+    TRUE ~ ((SGV_score$gold-64.95)/(80.89-64.95))*100)
+
+SGV_score$score_pct_cling <-
+  case_when(
+    SGV_score$pct_cling > 62.23 ~ 100,
+    SGV_score$pct_cling < 39.7 ~ 0,
+    TRUE ~ ((SGV_score$pct_cling-39.7)/(62.23-39.7))*100)
+
+SGV_score$score_pct_collect <-
+  case_when(
+    SGV_score$pct_collect < 71.17 ~ 100,
+    SGV_score$pct_collect > 94.57 ~ 0,
+    TRUE ~ ((94.57-SGV_score$pct_collect)/(94.57-71.17))*100)
+
+SGV_score$score_pct_ephemeroptera_no_baetid <-
+  case_when(
+    SGV_score$pct_ephemeroptera_no_baetid > 23.94 ~ 100,
+    SGV_score$pct_ephemeroptera_no_baetid < 5.23 ~ 0,
+    TRUE ~ ((SGV_score$pct_ephemeroptera_no_baetid-5.23)/(23.94-5.23))*100)
+
+SGV_score$score_pct_ept_no_hydro <-
+  case_when(
+    SGV_score$pct_ept_no_hydro > 83.21 ~ 100,
+    SGV_score$pct_ept_no_hydro < 73.53 ~ 0,
+    TRUE ~ ((SGV_score$pct_ept_no_hydro-73.53)/(83.21-73.53))*100)
+
+SGV_score$score_pct_ept_rich_no_tol <-
+  case_when(
+    SGV_score$pct_ept_rich_no_tol > 32.97 ~ 100,
+    SGV_score$pct_ept_rich_no_tol < 19.39 ~ 0,
+    TRUE ~ ((SGV_score$pct_ept_rich_no_tol-19.39)/(32.97-19.39))*100)
+
+SGV_score$score_pct_filter <-
+  case_when(
+    SGV_score$pct_filter > 22.79 ~ 100,
+    SGV_score$pct_filter < 8.6 ~ 0,
+    TRUE ~ ((SGV_score$pct_filter-8.6)/(22.79-8.6))*100)
+
+SGV_score$score_pct_heptageniidae <-
+  case_when(
+    SGV_score$pct_heptageniidae > 7.89 ~ 100,
+    SGV_score$pct_heptageniidae < 0 ~ 0,
+    TRUE ~ ((SGV_score$pct_heptageniidae-0)/(7.89-0))*100)
+
+SGV_score$score_pct_mod_tol_4_6 <-
+  case_when(
+    SGV_score$pct_mod_tol_4_6 < 52.49 ~ 100,
+    SGV_score$pct_mod_tol_4_6 > 76.71 ~ 0,
+    TRUE ~ ((76.71-SGV_score$pct_mod_tol_4_6)/(76.71-52.49))*100)
+
+SGV_score$score_pct_non_hydrop_trichoptera <-
+  case_when(
+    SGV_score$pct_non_hydrop_trichoptera > 30.54 ~ 100,
+    SGV_score$pct_non_hydrop_trichoptera < 10.57 ~ 0,
+    TRUE ~ ((SGV_score$pct_non_hydrop_trichoptera-10.57)/(30.54-10.57))*100)
+
+SGV_score$score_pct_pisciforma <-
+  case_when(
+    SGV_score$pct_pisciforma > 17.07 ~ 100,
+    SGV_score$pct_pisciforma < 0.1 ~ 0,
+    TRUE ~ ((SGV_score$pct_pisciforma-0.1)/(17.07-0.1))*100)
+
+SGV_score$score_pct_predator <-
+  case_when(
+    SGV_score$pct_predator > 5.28 ~ 100,
+    SGV_score$pct_predator < 0.02 ~ 0,
+    TRUE ~ ((SGV_score$pct_predator-0.02)/(5.28-0.02))*100)
+
+SGV_score$score_pct_pterygota <-
+  case_when(
+    SGV_score$pct_pterygota > 96.88 ~ 100,
+    SGV_score$pct_pterygota < 90.2 ~ 0,
+    TRUE ~ ((SGV_score$pct_pterygota-90.2)/(96.88-90.2))*100)
+
+SGV_score$score_pct_scrape <-
+  case_when(
+    SGV_score$pct_scrape > 15.43 ~ 100,
+    SGV_score$pct_scrape < 0.32 ~ 0,
+    TRUE ~ ((SGV_score$pct_scrape-0.32)/(15.43-0.32))*100)
+
+SGV_score$score_pct_sprawl <-
+  case_when(
+    SGV_score$pct_sprawl < 1.79 ~ 100,
+    SGV_score$pct_sprawl > 4.54 ~ 0,
+    TRUE ~ ((4.54-SGV_score$pct_sprawl)/(4.54-1.79))*100)
+
+SGV_score$score_pct_tolerant_7_10 <-
+  case_when(
+    SGV_score$pct_tolerant_7_10 < 1.73 ~ 100,
+    SGV_score$pct_tolerant_7_10 > 4.3 ~ 0,
+    TRUE ~ ((4.3-SGV_score$pct_tolerant_7_10)/(4.3-1.73))*100)
+
+SGV_score$score_rich_collect <-
+  case_when(
+    SGV_score$rich_collect > 8 ~ 100,
+    SGV_score$rich_collect < 6.32 ~ 0,
+    TRUE ~ ((SGV_score$rich_collect-6.32)/(8-6.32))*100)
+
 ```
 6. INDEX CONSTRUCTION
 ```{r}
@@ -1125,3 +1679,4 @@ CA_score$score_pct_hydro_ept <-
 ```{r}
 
 ```
+-
