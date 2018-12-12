@@ -655,41 +655,29 @@ print(metrics.key)
 **5. METRIC SCORING**  
 **5.1** Subset the data by bioregion.
 ```{r}
-NAPU <- metrics.key %>%
-  filter(icprb_bioregion_id == "napu")
+NAPU <- metrics.key %>% filter(icprb_bioregion_id == "napu")
 
-NCA <- metrics.key %>%
-  filter(icprb_bioregion_id == "nca")
+NCA <- metrics.key %>% filter(icprb_bioregion_id == "nca")
 
-CA <- metrics.key %>%
-  filter(icprb_bioregion_id == "ca")
+CA <- metrics.key %>% filter(icprb_bioregion_id == "ca")
 
-MAC<- metrics.key %>%
-  filter(icprb_bioregion_id == "mac")
+MAC<- metrics.key %>% filter(icprb_bioregion_id == "mac")
 
-SEP <- metrics.key %>%
-  filter(icprb_bioregion_id == "sep")
+SEP <- metrics.key %>% filter(icprb_bioregion_id == "sep")
  
-BLUE <- metrics.key %>%
-  filter(icprb_bioregion_id == "blue")
+BLUE <- metrics.key %>% filter(icprb_bioregion_id == "blue")
 
-NRV <- metrics.key %>%
-  filter(icprb_bioregion_id == "nrv")
+NRV <- metrics.key %>% filter(icprb_bioregion_id == "nrv")
 
-SRV <- metrics.key %>%
-  filter(icprb_bioregion_id == "srv")
+SRV <- metrics.key %>% filter(icprb_bioregion_id == "srv")
 
-UNP <- metrics.key %>%
-  filter(icprb_bioregion_id == "unp")
+UNP <- metrics.key %>% filter(icprb_bioregion_id == "unp")
 
-SGV <- metrics.key %>%
-  filter(icprb_bioregion_id == "sgv")
+SGV <- metrics.key %>% filter(icprb_bioregion_id == "sgv")
 
-LNP <- metrics.key %>%
-  filter(icprb_bioregion_id == "lnp")
+LNP <- metrics.key %>% filter(icprb_bioregion_id == "lnp")
 
-PIED <- metrics.key %>%
-  filter(icprb_bioregion_id == "pied")
+PIED <- metrics.key %>% filter(icprb_bioregion_id == "pied")
 ```
 **5.2** Create a vector for each of the twelve bioregions that contains the names of the metrics specific to that bioregion.
 ```{r}
@@ -1844,5 +1832,5 @@ LNP_score$Chessie_BIBI <- rowMeans(LNP_score[ ,14:22], na.rm = T)
 
 PIED_score$Chessie_BIBI <- rowMeans(PIED_score[ ,13:20], na.rm = T) 
 ```
- 
+** Assign narrative ratings (Excellent, Very Good, Fair, Poor, Very Poor).**
 -
