@@ -177,7 +177,7 @@ metrics.df <- taxa_seq_parallel(taxa.dev, unique_id, reporting_value,
 data.table::fwrite(metrics.df, "temp_metrics.csv")
 ```
 **2. CALCULATE THE BIOLOGICAL METRICS**  
-Once the data is in the proper format, the metrics can be calcualted quickly. The following scripts compute every metric for each of the 21,834 unique_id's. 
+Once the data is in the proper format, the metrics can be calcualted quickly. The following scripts compute every metric for each unique_id. 
 ```{r}
 non_rare <- prep.df2 %>% # non-rarefied data frame from above
    arrange(unique_id) %>%
@@ -657,27 +657,16 @@ print(metrics.key)
 **5.1** Subset the data by bioregion.
 ```{r}
 NAPU <- metrics.key %>% filter(icprb_bioregion_id == "napu")
-
 NCA <- metrics.key %>% filter(icprb_bioregion_id == "nca")
-
 CA <- metrics.key %>% filter(icprb_bioregion_id == "ca")
-
 MAC<- metrics.key %>% filter(icprb_bioregion_id == "mac")
-
 SEP <- metrics.key %>% filter(icprb_bioregion_id == "sep")
- 
 BLUE <- metrics.key %>% filter(icprb_bioregion_id == "blue")
-
 NRV <- metrics.key %>% filter(icprb_bioregion_id == "nrv")
-
 SRV <- metrics.key %>% filter(icprb_bioregion_id == "srv")
-
 UNP <- metrics.key %>% filter(icprb_bioregion_id == "unp")
-
 SGV <- metrics.key %>% filter(icprb_bioregion_id == "sgv")
-
 LNP <- metrics.key %>% filter(icprb_bioregion_id == "lnp")
-
 PIED <- metrics.key %>% filter(icprb_bioregion_id == "pied")
 ```
 **5.2** Create a vector for each of the twelve bioregions that contains the names of the metrics specific to that bioregion.
@@ -1997,7 +1986,7 @@ bibi_ratings_combined <- rbind(bind10, PIED_sub)
 ```
 Create a stacked bar chart of the ratings of each bioregion.
 ```{r echo=TRUE}
-test2 <- bibi_ratings_combined %>% 
+stacked_bar <- bibi_ratings_combined %>% 
   group_by(icprb_bioregion_id) %>% 
   mutate(total = n()) %>% 
   group_by(icprb_bioregion_id, rating, total) %>% 
@@ -2007,8 +1996,8 @@ test2 <- bibi_ratings_combined %>%
          rating = factor(rating, levels = c("excellent", "good", "fair", "poor", "very_poor"))) %>% 
   arrange(icprb_bioregion_id, rating)
 
-ggplot(test2) + 
-  geom_bar(aes(y = percent, x = icprb_bioregion_id, fill = rating), data = test2,
+ggplot(stacked_bar) + 
+  geom_bar(aes(y = percent, x = icprb_bioregion_id, fill = rating), data = stacked_bar,
                            stat="identity") +
   scale_fill_manual(name = "rating",
                     labels = c("excellent", "good", "fair", "poor", "very_poor"),
@@ -2019,18 +2008,23 @@ ggplot(test2) +
                                "very_poor" = "red3"))
 ```
 Pie charts of ratings
-```{r}
+```{r echo=TRUE}
+pie_total <- bibi_ratings_combined %>%
+  mutate(total = n()) %>% 
+  group_by(rating, total) %>% 
+  summarize(count = n()) %>% 
+  ungroup() %>%
+  mutate(percent = count / total * 100)
 
-slices <- c(15.487036, 25.998598, 29.642607, 27.049755, 1.822004)
+slices <- c(21.30704, 18.39028, 16.58335, 25.91149, 17.80784)
 lbls <- c("Excellent", "Good", "Fair", "Poor", "Very Poor")
-pie(slices, labels = lbls, main="NAPU Ratings", col= c("darkgreen", "green3","yellow2", "orange2", "red3"))
-
-
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct)
+lbls <- paste(lbls,"%",sep="")
+pie(slices, labels = lbls, main="Family-level Bioregion Chessie BIBI Ratings", col= c("darkgreen", "green3","yellow2", "orange2", "red3"))
 ```
 
 ```{r}
-
-
 
 
 
