@@ -1,9 +1,14 @@
 ---
-title: "Directions for Implementing the Chessie BIBI"
-output: html_notebook
+title: "Directions for Implementing the Chessie BIBI in RStudio"
+output:
+  html_document:
+    df_print: paged
 ---
 **INTRODUCTION**  
 This R-script and documentation is intended as a supplement to the [Smith et al. (2017) final report](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Report_Final_5-25-2017.pdf) and [appendices](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Appendix_Final_5-25-2017.pdf). Use these scripts to calculate the family-and bioregion- level “Chessie BIBI,” or Chesapeake Basin-wide Index of Biotic Integrity for streams and wadeable rivers in the Chesapeake Bay watershed.  
+
+**BEFORE YOU GET STARTED**
+In order to run the following R scripts, you will need to have RStudio installed. If you do not have RStudio installed, it can be downloaded for free from [https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/). 
 
 **1. DATA PREPARATION**   
 Most macroinvertebrate assemblage data are formatted in a similar manner; however, rarely can data sets from two separate entities be joined without some manipulation. The data preparation functions outlined below manipulate the data to meet formatting requirements necessary for using the contained custom functions in the bibi2.0 and mmir packages. For any of the functions to be useful, the user must first properly prepare their data using the provided functions outlined below.  
@@ -12,12 +17,12 @@ Most macroinvertebrate assemblage data are formatted in a similar manner; howeve
 
 The [Integrated Taxonomic Information System (ITIS)](https://www.itis.gov/) is an online database managed by federal agencies that attempts to provide the current taxonomic nomenclature. The Taxonomic Serial Number (TSN), a unique identification number assigned to each taxon, was also adopted from ITIS.gov. If the taxon was not found in ITIS but was valid based on a review of the literature, the taxon was assigned a unique negative integer. The negative integers will never overlap with the positive integers used by ITIS, allowing the table to accommodate additional taxa from ITIS without issue. The TSNs are reflected in the *TSN_FINAL* column in the Master Taxa List. It must also include a *FINAL_ID* column indicating the lowest taxonomic rank represented in a given row. Additionally, the Master Taxa List must contain each of the following taxonomic ranks: Phylum, Subphylum, Class, Subclass, Order, Suborder, Family, Subfamily, Tribe, Genus, Species.  Finally, if the user wants to calculate any of the metrics related to these taxonomic attributes, the table must also contain contain Tolerance Values (TV), Functional Feeding Groups (FFG), Habits, and Beck's Class.   
 
-**1.1** Load the following packages into the environment.  
+**1.1** Load the following packages into the environment. A package must be installed before it can be opened. To install a package, use `install.packages(" ")`.  
 
 *mmir* is a custom package developed by Zachary Smith to calculate taxonomic community metrics. The development version can be downloaded from the [ICPRB GitHub account](https://github.com/InterstateCommissionPotomacRiverBasin/mmir) using `devtools::install_github(repo = "InterstateCommissionPotomacRiverBasin/mmir")`. After the installation, *mmir* must be loaded into the environment using `library()`.
 
 *bibi2.0* is a custom package developed by Zachary Smith to automate the data preparation process. (HOW CAN OTHERS ACCESS?)
-```{r}
+```{r message=FALSE}
 library(tidyverse)
 library(stringr)
 library(lubridate)
@@ -60,10 +65,17 @@ Windows 32-bit:
 ```{r eval=FALSE}
 channel <- RODBC::odbcConnect("CBIBI_2017")
 
-tab.vec <- c("TAB_EVENT", "TAB_STATIONS", "TAB_PROJECT",
-            "TAB_WQ_DATA", "TAB_PARAMETER_WQ", "TAB_HABITAT_ASSESSMENT",
-           "TAB_HABITAT_PARAMETERS", "TAB_TAXONOMIC_COUNT",
-             "TAB_HUC_12", "TAB_PROGRAM", "TAB_MASTER_TAXA_LIST")
+tab.vec <- c("TAB_EVENT",
+             "TAB_STATIONS",
+             "TAB_PROJECT",
+             "TAB_WQ_DATA",
+             "TAB_PARAMETER_WQ",
+             "TAB_HABITAT_ASSESSMENT",
+             "TAB_HABITAT_PARAMETERS",
+             "TAB_TAXONOMIC_COUNT",
+             "TAB_HUC_12",
+             "TAB_PROGRAM",
+             "TAB_MASTER_TAXA_LIST")
 
  tab.list <- purrr::map(tab.vec, function(tab.i) {
   RODBC::sqlFetch(channel, tab.i, stringsAsFactors = FALSE) %>% 
@@ -129,11 +141,6 @@ prep.df2 <-
   )
 )
 ```
-
-```{r eval = FALSE}
-#Can be skipped; was for development.
-site.class.df <- site_classification(prep.df) 
-```
 **1.6** Perform general cleaning of the data frame. The resulting data frame is `taxa.df`.
 ```{r cache=TRUE}
 taxa.df <- prep.df2 %>% 
@@ -152,29 +159,8 @@ taxa.df <- prep.df2 %>%
   ungroup()
 ```
 **1.7** Probabilistic rarefaction as described in Appendix D.  
-A warning message will appear; however, this does not impact the rarefaction calculations.
-```{r cache=TRUE}
+```{r cache=TRUE, warning=FALSE}
 taxa.df <- prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)
-```
-
-```{r eval=FALSE}
-# Can be skipped; was for development.
-taxa.dev <- taxa.df %>% 
-  filter(category %in% c("ref", "deg"))
-
-metrics.df <- taxa.dev %>% 
-  select(unique_id, category, icprb_bioregion_id) %>% 
-  distinct()
-
-metrics.df <- taxa_seq_parallel(taxa.dev, unique_id, reporting_value,
-                                "order", "genus",
-                                job = "pct") %>% 
-  bind_cols(metrics.df)
-```
-
-```{r eval=FALSE}
-#Can be skipped; was for development.
-data.table::fwrite(metrics.df, "temp_metrics.csv")
 ```
 **2. CALCULATE THE BIOLOGICAL METRICS**  
 Once the data is in the proper format, the metrics can be calcualted quickly. The following scripts compute every metric for each unique_id. 
@@ -215,6 +201,7 @@ metrics.key <- non_rare %>%
   taxon = "diptera")
   
   metrics.key$gold <- 100 - (metrics.key$pct_gastro_oligo + metrics.key$pct_diptera) # was 1-x, but in appendix, should be 100-x
+  
   metrics.key$hbi <- taxa_tol_index(
   long.df = non_rare,
   unique.id.col = unique_id,
@@ -519,16 +506,19 @@ metrics.key <- non_rare %>%
   # hand-calculate pct_ept_rich
   taxa_count <- rare %>%
     group_by(unique_id) %>%
-     count(unique_id)
-      ept_count <- rare %>%
-       group_by(unique_id) %>%
+     filter(!is.na(bibi_tv)) %>%
+      count(unique_id) 
+    ept_count <- rare %>%
+      group_by(unique_id) %>%
+       filter(!is.na(bibi_tv)) %>% 
         tally(order %in% c("ephemeroptera", "plecoptera", "trichoptera"))
     metrics.key$pct_ept_rich <- (ept_count$n / taxa_count$n)*100
   
-    # hand-calculate pct_ept_rich_no_tol
+  # hand-calculate pct_ept_rich_no_tol
   ept_no_tol_count <- rare %>%
     group_by(unique_id) %>%
-     tally(order %in% c("ephemeroptera", "plecoptera", "trichoptera") & bibi_tv %in% c("0","1","2","3","4","5","6"))
+     filter(!is.na(bibi_tv)) %>% 
+      tally(order %in% c("ephemeroptera", "plecoptera", "trichoptera") & bibi_tv %in% c("0","1","2","3","4","5","6"))
    metrics.key$pct_ept_rich_no_tol <- (ept_no_tol_count$n/taxa_count$n)*100
   
   metrics.key$pielou <- taxa_div(
@@ -689,7 +679,6 @@ NAPU_score <- NAPU %>%
   "pct_filter",
   "pct_intol_0_3",
   "pct_non_hydrop_trichoptera",
-  "pct_predator",
   "pct_scrape",
   "pielou",
   "rich_burrow",
@@ -985,12 +974,6 @@ NAPU_score$score_pct_non_hydrop_trichoptera <-
     NAPU_score$pct_non_hydrop_trichoptera > 45.08 ~ 100,
     NAPU_score$pct_non_hydrop_trichoptera < 20.6 ~ 0,
     TRUE ~ ((NAPU_score$pct_non_hydrop_trichoptera-20.6)/(45.08-20.6))*100)
-
-NAPU_score$score_pct_predator <- 
-  case_when(
-    NAPU_score$pct_predator < 5.36 ~ 100,
-    NAPU_score$pct_predator > 6.24 ~ 0,        
-    TRUE ~ ((6.24-NAPU_score$pct_predator)/(6.24-5.36))*100)
 
 NAPU_score$score_pct_scrape <- 
   case_when(
@@ -1810,28 +1793,17 @@ PIED_score$score_rich_trichoptera <-
 
 Average the metric score columns across the unique ID rows. The Chessie BIBI of each unique sampling instance will be outputted in a column called "chessie_bibi." 
 ```{r}
-NAPU_score$chessie_bibi <- rowMeans(NAPU_score[ ,26:45], na.rm = T)
-
+NAPU_score$chessie_bibi <- rowMeans(NAPU_score[ ,25:43], na.rm = T)
 NCA_score$chessie_bibi <- rowMeans(NCA_score[ ,15:23], na.rm = T)
-
 CA_score$chessie_bibi <- rowMeans(CA_score[ ,19:31], na.rm = T)
-
 MAC_score$chessie_bibi <- rowMeans(MAC_score[ ,18:29], na.rm = T)
-
 SEP_score$chessie_bibi <- rowMeans(SEP_score[ ,17:26], na.rm = T)
- 
 BLUE_score$chessie_bibi <- rowMeans(BLUE_score[ ,11:15], na.rm = T) 
-
 NRV_score$chessie_bibi <- rowMeans(NRV_score[ ,14:21], na.rm = T)
-
 SRV_score$chessie_bibi <- rowMeans(SRV_score[ ,21:35], na.rm = T)
-
 UNP_score$chessie_bibi <- rowMeans(UNP_score[ ,18:29], na.rm = T)
-
 SGV_score$chessie_bibi <- rowMeans(SGV_score[ ,27:47], na.rm = T) 
-
 LNP_score$chessie_bibi <- rowMeans(LNP_score[ ,15:23], na.rm = T)
-
 PIED_score$chessie_bibi <- rowMeans(PIED_score[ ,14:21], na.rm = T) 
 ```
 ** Assign narrative ratings (Excellent, Very Good, Fair, Poor, Very Poor).**
@@ -1948,27 +1920,16 @@ PIED_score$rating <-
 Merge the data from the individual bioregions into one large data frame that contains the Chessie BIBI and narrative rating for all unique IDs.
 ```{r}
 NAPU_sub <- NAPU_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 NCA_sub <- NCA_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 CA_sub <- CA_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 MAC_sub <- MAC_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 SEP_sub <- SEP_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
- 
 BLUE_sub <- BLUE_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 NRV_sub <- NRV_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 SRV_sub <- SRV_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 UNP_sub <- UNP_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 SGV_sub <- SGV_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 LNP_sub <- LNP_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
-
 PIED_sub <- PIED_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
 
 bind1 <- rbind(NAPU_sub, NCA_sub)
@@ -1982,7 +1943,6 @@ bind8 <- rbind(bind7, UNP_sub)
 bind9 <- rbind(bind8, SGV_sub)
 bind10 <- rbind(bind9, LNP_sub)
 bibi_ratings_combined <- rbind(bind10, PIED_sub)
-
 ```
 Create a stacked bar chart of the ratings of each bioregion.
 ```{r echo=TRUE}
@@ -1996,11 +1956,10 @@ stacked_bar <- bibi_ratings_combined %>%
          rating = factor(rating, levels = c("excellent", "good", "fair", "poor", "very_poor"))) %>% 
   arrange(icprb_bioregion_id, rating)
 
-ggplot(stacked_bar) + 
-  geom_bar(aes(y = percent, x = icprb_bioregion_id, fill = rating), data = stacked_bar,
-                           stat="identity") +
-  scale_fill_manual(name = "rating",
-                    labels = c("excellent", "good", "fair", "poor", "very_poor"),
+ggplot(stacked_bar) + geom_bar(aes(y = percent, x = icprb_bioregion_id, fill = rating), data = stacked_bar, 
+                           stat="identity") + ggtitle("Chessie BIBI Index Scores for family-level bioregion index") + ylab("Percent") + xlab("Bioregion") +
+  scale_fill_manual(name = "Rating",
+                    labels = c("Excellent", "Good", "Fair", "Poor", "Very poor"),
                     values = c("excellent" = "darkgreen",
                                "good" = "green3",
                                "fair" = "yellow2",
