@@ -29,6 +29,7 @@ library(DBI)
 library(magrittr)
 library(vegan)
 library(toolbox) # Download from Github (https://github.com/zsmith27/toolbox), then use: devtools::install_github("zsmith27/toolbox")
+library(ggplot2)
 ```
 **1.2** Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. Both directions are outlined below. Then, the bibi2.0 function, `clean_data_frame()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data. 
 Windows 64-bit:
@@ -1818,180 +1819,229 @@ PIED_score$score_rich_trichoptera <-
 ```
 **6. CALCULATING THE CHESSIE BIBI**  
 
-Average the metric score columns across the unique ID rows. The Chessie BIBI of each unique sampling instance will be outputted in a column called "Chessie_BIBI." 
+Average the metric score columns across the unique ID rows. The Chessie BIBI of each unique sampling instance will be outputted in a column called "chessie_bibi." 
 ```{r}
-NAPU_score$Chessie_BIBI <- rowMeans(NAPU_score[ ,26:45], na.rm = T)
+NAPU_score$chessie_bibi <- rowMeans(NAPU_score[ ,26:45], na.rm = T)
 
-NCA_score$Chessie_BIBI <- rowMeans(NCA_score[ ,15:23], na.rm = T)
+NCA_score$chessie_bibi <- rowMeans(NCA_score[ ,15:23], na.rm = T)
 
-CA_score$Chessie_BIBI <- rowMeans(CA_score[ ,19:31], na.rm = T)
+CA_score$chessie_bibi <- rowMeans(CA_score[ ,19:31], na.rm = T)
 
-MAC_score$Chessie_BIBI <- rowMeans(MAC_score[ ,18:29], na.rm = T)
+MAC_score$chessie_bibi <- rowMeans(MAC_score[ ,18:29], na.rm = T)
 
-SEP_score$Chessie_BIBI <- rowMeans(SEP_score[ ,17:26], na.rm = T)
+SEP_score$chessie_bibi <- rowMeans(SEP_score[ ,17:26], na.rm = T)
  
-BLUE_score$Chessie_BIBI <- rowMeans(BLUE_score[ ,11:15], na.rm = T) 
+BLUE_score$chessie_bibi <- rowMeans(BLUE_score[ ,11:15], na.rm = T) 
 
-NRV_score$Chessie_BIBI <- rowMeans(NRV_score[ ,14:21], na.rm = T)
+NRV_score$chessie_bibi <- rowMeans(NRV_score[ ,14:21], na.rm = T)
 
-SRV_score$Chessie_BIBI <- rowMeans(SRV_score[ ,21:35], na.rm = T)
+SRV_score$chessie_bibi <- rowMeans(SRV_score[ ,21:35], na.rm = T)
 
-UNP_score$Chessie_BIBI <- rowMeans(UNP_score[ ,18:29], na.rm = T)
+UNP_score$chessie_bibi <- rowMeans(UNP_score[ ,18:29], na.rm = T)
 
-SGV_score$Chessie_BIBI <- rowMeans(SGV_score[ ,27:47], na.rm = T) 
+SGV_score$chessie_bibi <- rowMeans(SGV_score[ ,27:47], na.rm = T) 
 
-LNP_score$Chessie_BIBI <- rowMeans(LNP_score[ ,15:23], na.rm = T)
+LNP_score$chessie_bibi <- rowMeans(LNP_score[ ,15:23], na.rm = T)
 
-PIED_score$Chessie_BIBI <- rowMeans(PIED_score[ ,14:21], na.rm = T) 
+PIED_score$chessie_bibi <- rowMeans(PIED_score[ ,14:21], na.rm = T) 
 ```
 ** Assign narrative ratings (Excellent, Very Good, Fair, Poor, Very Poor).**
 ```{r}
-NAPU_score$Rating <-
+NAPU_score$rating <-
   case_when(
-    NAPU_score$Chessie_BIBI < 17.9 ~ "very_poor",
-    NAPU_score$Chessie_BIBI >= 17.9 & NAPU_score$Chessie_BIBI < 35.9 ~ "poor",
-    NAPU_score$Chessie_BIBI >= 35.9 & NAPU_score$Chessie_BIBI < 47.7 ~ "fair",
-    NAPU_score$Chessie_BIBI >= 47.7 & NAPU_score$Chessie_BIBI < 61.9 ~ "good",
-    NAPU_score$Chessie_BIBI >= 61.9 ~ "excellent",
+    NAPU_score$chessie_bibi < 17.9 ~ "very_poor",
+    NAPU_score$chessie_bibi >= 17.9 & NAPU_score$chessie_bibi < 35.9 ~ "poor",
+    NAPU_score$chessie_bibi >= 35.9 & NAPU_score$chessie_bibi < 47.7 ~ "fair",
+    NAPU_score$chessie_bibi >= 47.7 & NAPU_score$chessie_bibi < 61.9 ~ "good",
+    NAPU_score$chessie_bibi >= 61.9 ~ "excellent",
     TRUE ~ "ERROR")
 
-NCA_score$Rating <-
+NCA_score$rating <-
   case_when(
-    NCA_score$Chessie_BIBI < 15.7 ~ "very_poor",
-    NCA_score$Chessie_BIBI >= 15.7 & NCA_score$Chessie_BIBI < 31.5 ~ "poor",
-    NCA_score$Chessie_BIBI >= 31.5 & NCA_score$Chessie_BIBI < 56.3 ~ "fair",
-    NCA_score$Chessie_BIBI >= 56.3 & NCA_score$Chessie_BIBI < 78.7 ~ "good",
-    NCA_score$Chessie_BIBI >= 78.7 ~ "excellent",
+    NCA_score$chessie_bibi < 15.7 ~ "very_poor",
+    NCA_score$chessie_bibi >= 15.7 & NCA_score$chessie_bibi < 31.5 ~ "poor",
+    NCA_score$chessie_bibi >= 31.5 & NCA_score$chessie_bibi < 56.3 ~ "fair",
+    NCA_score$chessie_bibi >= 56.3 & NCA_score$chessie_bibi < 78.7 ~ "good",
+    NCA_score$chessie_bibi >= 78.7 ~ "excellent",
     TRUE ~ "ERROR")
   
-CA_score$Rating <-
+CA_score$rating <-
   case_when(
-    CA_score$Chessie_BIBI < 27.9 ~ "very_poor",
-    CA_score$Chessie_BIBI >= 27.9 & CA_score$Chessie_BIBI < 55.8 ~ "poor",
-    CA_score$Chessie_BIBI >= 55.8 & CA_score$Chessie_BIBI < 69.5 ~ "fair",
-    CA_score$Chessie_BIBI >= 69.5 & CA_score$Chessie_BIBI < 78.6 ~ "good",
-    CA_score$Chessie_BIBI >= 78.6 ~ "excellent",
+    CA_score$chessie_bibi < 27.9 ~ "very_poor",
+    CA_score$chessie_bibi >= 27.9 & CA_score$chessie_bibi < 55.8 ~ "poor",
+    CA_score$chessie_bibi >= 55.8 & CA_score$chessie_bibi < 69.5 ~ "fair",
+    CA_score$chessie_bibi >= 69.5 & CA_score$chessie_bibi < 78.6 ~ "good",
+    CA_score$chessie_bibi >= 78.6 ~ "excellent",
     TRUE ~ "ERROR")
 
-MAC_score$Rating <-
+MAC_score$rating <-
   case_when(
-    MAC_score$Chessie_BIBI < 22.7 ~ "very_poor",
-    MAC_score$Chessie_BIBI >= 22.7 & MAC_score$Chessie_BIBI < 45.4 ~ "poor",
-    MAC_score$Chessie_BIBI >= 45.4 & MAC_score$Chessie_BIBI < 63.2 ~ "fair",
-    MAC_score$Chessie_BIBI >= 63.2 & MAC_score$Chessie_BIBI < 76.8 ~ "good",
-    MAC_score$Chessie_BIBI >= 76.8 ~ "excellent",
+    MAC_score$chessie_bibi < 22.7 ~ "very_poor",
+    MAC_score$chessie_bibi >= 22.7 & MAC_score$chessie_bibi < 45.4 ~ "poor",
+    MAC_score$chessie_bibi >= 45.4 & MAC_score$chessie_bibi < 63.2 ~ "fair",
+    MAC_score$chessie_bibi >= 63.2 & MAC_score$chessie_bibi < 76.8 ~ "good",
+    MAC_score$chessie_bibi >= 76.8 ~ "excellent",
     TRUE ~ "ERROR")
   
-SEP_score$Rating <-
+SEP_score$rating <-
   case_when(
-    SEP_score$Chessie_BIBI < 16.3 ~ "very_poor",
-    SEP_score$Chessie_BIBI >= 16.3 & SEP_score$Chessie_BIBI < 32.6 ~ "poor",
-    SEP_score$Chessie_BIBI >= 32.6 & SEP_score$Chessie_BIBI < 56.7 ~ "fair",
-    SEP_score$Chessie_BIBI >= 56.7 & SEP_score$Chessie_BIBI < 83.9 ~ "good",
-    SEP_score$Chessie_BIBI >= 83.9 ~ "excellent",
+    SEP_score$chessie_bibi < 16.3 ~ "very_poor",
+    SEP_score$chessie_bibi >= 16.3 & SEP_score$chessie_bibi < 32.6 ~ "poor",
+    SEP_score$chessie_bibi >= 32.6 & SEP_score$chessie_bibi < 56.7 ~ "fair",
+    SEP_score$chessie_bibi >= 56.7 & SEP_score$chessie_bibi < 83.9 ~ "good",
+    SEP_score$chessie_bibi >= 83.9 ~ "excellent",
     TRUE ~ "ERROR")
   
-BLUE_score$Rating <-
+BLUE_score$rating <-
   case_when(
-    BLUE_score$Chessie_BIBI < 30.9 ~ "very_poor",
-    BLUE_score$Chessie_BIBI >= 30.9 & BLUE_score$Chessie_BIBI < 61.7 ~ "poor",
-    BLUE_score$Chessie_BIBI >= 61.7 & BLUE_score$Chessie_BIBI < 82.2 ~ "fair",
-    BLUE_score$Chessie_BIBI >= 82.2 & BLUE_score$Chessie_BIBI < 91.1 ~ "good",
-    BLUE_score$Chessie_BIBI >= 91.1 ~ "excellent",
+    BLUE_score$chessie_bibi < 30.9 ~ "very_poor",
+    BLUE_score$chessie_bibi >= 30.9 & BLUE_score$chessie_bibi < 61.7 ~ "poor",
+    BLUE_score$chessie_bibi >= 61.7 & BLUE_score$chessie_bibi < 82.2 ~ "fair",
+    BLUE_score$chessie_bibi >= 82.2 & BLUE_score$chessie_bibi < 91.1 ~ "good",
+    BLUE_score$chessie_bibi >= 91.1 ~ "excellent",
     TRUE ~ "ERROR")
   
-NRV_score$Rating <-
+NRV_score$rating <-
   case_when(
-    NRV_score$Chessie_BIBI < 19.1 ~ "very_poor",
-    NRV_score$Chessie_BIBI >= 19.1 & NRV_score$Chessie_BIBI < 38.2 ~ "poor",
-    NRV_score$Chessie_BIBI >= 38.2 & NRV_score$Chessie_BIBI < 50.8 ~ "fair",
-    NRV_score$Chessie_BIBI >= 50.8 & NRV_score$Chessie_BIBI < 75.0 ~ "good",
-    NRV_score$Chessie_BIBI >= 75.0 ~ "excellent",
+    NRV_score$chessie_bibi < 19.1 ~ "very_poor",
+    NRV_score$chessie_bibi >= 19.1 & NRV_score$chessie_bibi < 38.2 ~ "poor",
+    NRV_score$chessie_bibi >= 38.2 & NRV_score$chessie_bibi < 50.8 ~ "fair",
+    NRV_score$chessie_bibi >= 50.8 & NRV_score$chessie_bibi < 75.0 ~ "good",
+    NRV_score$chessie_bibi >= 75.0 ~ "excellent",
     TRUE ~ "ERROR")
   
-SRV_score$Rating <-
+SRV_score$rating <-
   case_when(
-    SRV_score$Chessie_BIBI < 21.6 ~ "very_poor",
-    SRV_score$Chessie_BIBI >= 21.6 & SRV_score$Chessie_BIBI < 43.2 ~ "poor",
-    SRV_score$Chessie_BIBI >= 43.2 & SRV_score$Chessie_BIBI < 58.0 ~ "fair",
-    SRV_score$Chessie_BIBI >= 58.0 & SRV_score$Chessie_BIBI < 71.9 ~ "good",
-    SRV_score$Chessie_BIBI >= 71.9 ~ "excellent",
+    SRV_score$chessie_bibi < 21.6 ~ "very_poor",
+    SRV_score$chessie_bibi >= 21.6 & SRV_score$chessie_bibi < 43.2 ~ "poor",
+    SRV_score$chessie_bibi >= 43.2 & SRV_score$chessie_bibi < 58.0 ~ "fair",
+    SRV_score$chessie_bibi >= 58.0 & SRV_score$chessie_bibi < 71.9 ~ "good",
+    SRV_score$chessie_bibi >= 71.9 ~ "excellent",
     TRUE ~ "ERROR")
 
-UNP_score$Rating <-
+UNP_score$rating <-
   case_when(
-    UNP_score$Chessie_BIBI < 31.3 ~ "very_poor",
-    UNP_score$Chessie_BIBI >= 31.3 & UNP_score$Chessie_BIBI < 62.6 ~ "poor",
-    UNP_score$Chessie_BIBI >= 62.6 & UNP_score$Chessie_BIBI < 69.9 ~ "fair",
-    UNP_score$Chessie_BIBI >= 69.9 & UNP_score$Chessie_BIBI < 80.5 ~ "good",
-    UNP_score$Chessie_BIBI >= 80.5 ~ "excellent",
+    UNP_score$chessie_bibi < 31.3 ~ "very_poor",
+    UNP_score$chessie_bibi >= 31.3 & UNP_score$chessie_bibi < 62.6 ~ "poor",
+    UNP_score$chessie_bibi >= 62.6 & UNP_score$chessie_bibi < 69.9 ~ "fair",
+    UNP_score$chessie_bibi >= 69.9 & UNP_score$chessie_bibi < 80.5 ~ "good",
+    UNP_score$chessie_bibi >= 80.5 ~ "excellent",
     TRUE ~ "ERROR")
 
-SGV_score$Rating <-
+SGV_score$rating <-
   case_when(
-    SGV_score$Chessie_BIBI < 29.9 ~ "very_poor",
-    SGV_score$Chessie_BIBI >= 29.9 & SGV_score$Chessie_BIBI < 59.9 ~ "poor",
-    SGV_score$Chessie_BIBI >= 59.9 & SGV_score$Chessie_BIBI < 66.0 ~ "fair",
-    SGV_score$Chessie_BIBI >= 66.0 & SGV_score$Chessie_BIBI < 76.5 ~ "good",
-    SGV_score$Chessie_BIBI >= 76.5 ~ "excellent",
+    SGV_score$chessie_bibi < 29.9 ~ "very_poor",
+    SGV_score$chessie_bibi >= 29.9 & SGV_score$chessie_bibi < 59.9 ~ "poor",
+    SGV_score$chessie_bibi >= 59.9 & SGV_score$chessie_bibi < 66.0 ~ "fair",
+    SGV_score$chessie_bibi >= 66.0 & SGV_score$chessie_bibi < 76.5 ~ "good",
+    SGV_score$chessie_bibi >= 76.5 ~ "excellent",
     TRUE ~ "ERROR")
 
-LNP_score$Rating <-
+LNP_score$rating <-
   case_when(
-    LNP_score$Chessie_BIBI < 35.2 ~ "very_poor",
-    LNP_score$Chessie_BIBI >= 35.2 & LNP_score$Chessie_BIBI < 70.3 ~ "poor",
-    LNP_score$Chessie_BIBI >= 70.3 & LNP_score$Chessie_BIBI < 80.2 ~ "fair",
-    LNP_score$Chessie_BIBI >= 80.2 & LNP_score$Chessie_BIBI < 91.3 ~ "good",
-    LNP_score$Chessie_BIBI >= 91.3 ~ "excellent",
+    LNP_score$chessie_bibi < 35.2 ~ "very_poor",
+    LNP_score$chessie_bibi >= 35.2 & LNP_score$chessie_bibi < 70.3 ~ "poor",
+    LNP_score$chessie_bibi >= 70.3 & LNP_score$chessie_bibi < 80.2 ~ "fair",
+    LNP_score$chessie_bibi >= 80.2 & LNP_score$chessie_bibi < 91.3 ~ "good",
+    LNP_score$chessie_bibi >= 91.3 ~ "excellent",
     TRUE ~ "ERROR")
 
-PIED_score$Rating <-
+PIED_score$rating <-
   case_when(
-    PIED_score$Chessie_BIBI < 30.3 ~ "very_poor",
-    PIED_score$Chessie_BIBI >= 30.3 & PIED_score$Chessie_BIBI < 60.6 ~ "poor",
-    PIED_score$Chessie_BIBI >= 60.6 & PIED_score$Chessie_BIBI < 73.2 ~ "fair",
-    PIED_score$Chessie_BIBI >= 73.2 & PIED_score$Chessie_BIBI < 81.8 ~ "good",
-    PIED_score$Chessie_BIBI >= 81.8 ~ "excellent",
+    PIED_score$chessie_bibi < 30.3 ~ "very_poor",
+    PIED_score$chessie_bibi >= 30.3 & PIED_score$chessie_bibi < 60.6 ~ "poor",
+    PIED_score$chessie_bibi >= 60.6 & PIED_score$chessie_bibi < 73.2 ~ "fair",
+    PIED_score$chessie_bibi >= 73.2 & PIED_score$chessie_bibi < 81.8 ~ "good",
+    PIED_score$chessie_bibi >= 81.8 ~ "excellent",
     TRUE ~ "ERROR")
 
 ```
+Merge the data from the individual bioregions into one large data frame that contains the Chessie BIBI and narrative rating for all unique IDs.
+```{r}
+NAPU_sub <- NAPU_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+NCA_sub <- NCA_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+CA_sub <- CA_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+MAC_sub <- MAC_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+SEP_sub <- SEP_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+ 
+BLUE_sub <- BLUE_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+NRV_sub <- NRV_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+SRV_sub <- SRV_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+UNP_sub <- UNP_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+SGV_sub <- SGV_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+LNP_sub <- LNP_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+PIED_sub <- PIED_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
+
+bind1 <- rbind(NAPU_sub, NCA_sub)
+bind2 <- rbind(bind1, CA_sub)
+bind3 <- rbind(bind2, MAC_sub)
+bind4 <- rbind(bind3, SEP_sub)
+bind5 <- rbind(bind4, BLUE_sub)
+bind6 <- rbind(bind5, NRV_sub)
+bind7 <- rbind(bind6, SRV_sub)
+bind8 <- rbind(bind7, UNP_sub)
+bind9 <- rbind(bind8, SGV_sub)
+bind10 <- rbind(bind9, LNP_sub)
+bibi_ratings_combined <- rbind(bind10, PIED_sub)
+
+```
+Create a stacked bar chart of the ratings of each bioregion.
+```{r echo=TRUE}
+test2 <- bibi_ratings_combined %>% 
+  group_by(icprb_bioregion_id) %>% 
+  mutate(total = n()) %>% 
+  group_by(icprb_bioregion_id, rating, total) %>% 
+  summarize(count = n()) %>% 
+  ungroup() %>% 
+  mutate(percent = count / total * 100,
+         rating = factor(rating, levels = c("excellent", "good", "fair", "poor", "very_poor"))) %>% 
+  arrange(icprb_bioregion_id, rating)
+
+ggplot(test2) + 
+  geom_bar(aes(y = percent, x = icprb_bioregion_id, fill = rating), data = test2,
+                           stat="identity") +
+  scale_fill_manual(name = "rating",
+                    labels = c("excellent", "good", "fair", "poor", "very_poor"),
+                    values = c("excellent" = "darkgreen",
+                               "good" = "green3",
+                               "fair" = "yellow2",
+                               "poor" = "orange2",
+                               "very_poor" = "red3"))
+```
 Pie charts of ratings
 ```{r}
-## PIED
-PIED_ratings <- PIED_score %>%
-  mutate(total = n()) %>% 
-  group_by(Rating, total) %>% 
-  summarize(count = n()) %>% 
-   ungroup() %>% 
-  mutate(percent = count / total * 100, Rating = factor(Rating, levels = c("excellent", "good", "fair", "poor", "very_poor")))
-
-slices <- c(24.54183, 11.87251, 10.67729, 26.53386, 26.37450)
-lbls <- c("Excellent", "Good", "Fair", "Poor", "Very Poor")
-pie(slices, labels = lbls, main="PIED Ratings", col= c("darkgreen", "green3","yellow2", "orange2", "red3"))
-
-## NAPU
-NAPU_ratings <- NAPU_score %>%
-  mutate(total = n()) %>% 
-  group_by(Rating, total) %>% 
-  summarize(count = n()) %>% 
-   ungroup() %>% 
-  mutate(percent = count / total * 100, Rating = factor(Rating, levels = c("excellent", "good", "fair", "poor", "very_poor")))
 
 slices <- c(15.487036, 25.998598, 29.642607, 27.049755, 1.822004)
 lbls <- c("Excellent", "Good", "Fair", "Poor", "Very Poor")
 pie(slices, labels = lbls, main="NAPU Ratings", col= c("darkgreen", "green3","yellow2", "orange2", "red3"))
 
-## BLUE
-BLUE_ratings <- BLUE_score %>%
-  mutate(total = n()) %>% 
-  group_by(Rating, total) %>% 
-  summarize(count = n()) %>% 
-   ungroup() %>% 
-  mutate(percent = count / total * 100,
-         Rating = factor(Rating, levels = c("excellent", "good", "fair", "poor", "very_poor")))
 
-slices <- c(15.487036, 25.998598, 29.642607, 27.049755, 1.822004)
-lbls <- c("Excellent", "Good", "Fair", "Poor", "Very Poor")
-pie(slices, labels = lbls, main="NAPU Ratings", col= c("darkgreen", "green3","yellow2", "orange2", "red3"))
+```
+
+```{r}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```
 -
