@@ -4,12 +4,13 @@ output:
   html_document:
     df_print: paged
     toc: true
+    toc_depth: 2
     toc_float: true
 ---
 **INTRODUCTION**  
 This R-script and documentation is intended as a supplement to the [Smith et al. (2017) final report](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Report_Final_5-25-2017.pdf) and [appendices](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Appendix_Final_5-25-2017.pdf). Use the following scripts to calculate the family-and bioregion- level “Chessie BIBI,” or Chesapeake Basin-wide Index of Biotic Integrity for streams and wadeable rivers in the Chesapeake Bay watershed.      
 
-**BEFORE YOU GET STARTED**
+**BEFORE YOU GET STARTED**  
 In order to implement the following R scripts, RStudio must be installed. If RStudio is not installed, it can be downloaded for free from [https://www.rstudio.com/](https://www.rstudio.com/). This [webpage](https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/) will help guide you through the short installation process. Once installed, or if already installed, the scripts are designed to be copied and pasted into RStudio. Currently, a Windows machine must be used for data importation. For those unfamiliar with RStudio, each time a dataframe is created, it can be viewed by typing in `View(name)` in the console or by clicking its name in the Environment tab on the right.           
 
 **1. DATA PREPARATION**   
@@ -127,7 +128,7 @@ prep.df <- prep_data(tab.list$tab_taxonomic_count,
                      tab.list$tab_project,
                      tab.list$tab_huc_12,
                      agg_sample_num = TRUE,
-                     development = FALSE) # Should this be set to false?
+                     development = FALSE)
 
 rm(tab.list)
 ```
@@ -185,7 +186,7 @@ Now that the data are in the proper format and the samples have been rarefied, t
 The first step is to generate a new data frame for the non-rarefied and rarefied data, both of which are needed as some metrics require rarefied data, but thers do not.  
 
 Next, a data frame, **metrics.key**, will be generated. **metrics.key** initially only contains the following columns: unique_id, icprb_bioregion_id, event_latitude, event_longitude, and huc_12, but each calculated metric is appended.
-```{r}
+```{r message=FALSE}
 # Create a data frame of the non-rarefied and rarefied data.
 non_rare <- prep.df2 %>%
    arrange(unique_id) %>%
