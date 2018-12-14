@@ -1,23 +1,26 @@
 ---
-title: "Directions for Implementing the Chessie BIBI in RStudio"
+title: "Directions for Calculating the Chessie BIBI in RStudio"
 output:
   html_document:
     df_print: paged
 ---
 **INTRODUCTION**  
-This R-script and documentation is intended as a supplement to the [Smith et al. (2017) final report](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Report_Final_5-25-2017.pdf) and [appendices](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Appendix_Final_5-25-2017.pdf). Use these scripts to calculate the family-and bioregion- level “Chessie BIBI,” or Chesapeake Basin-wide Index of Biotic Integrity for streams and wadeable rivers in the Chesapeake Bay watershed.  
+This R-script and documentation is intended as a supplement to the [Smith et al. (2017) final report](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Report_Final_5-25-2017.pdf) and [appendices](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Appendix_Final_5-25-2017.pdf). Use the following scripts to calculate the family-and bioregion- level “Chessie BIBI,” or Chesapeake Basin-wide Index of Biotic Integrity for streams and wadeable rivers in the Chesapeake Bay watershed.    
 
 **BEFORE YOU GET STARTED**
-In order to run the following R scripts, you will need to have RStudio installed. If you do not have RStudio installed, it can be downloaded for free from [https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/). 
+In order to implement the following R scripts, RStudio must be installed, preferably on a Windows machine. If RStudio is not installed, it can be downloaded for free from [https://www.rstudio.com/](https://www.rstudio.com/). This [webpage](https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/) will help guide you through the short installation process.     
 
 **1. DATA PREPARATION**   
 Most macroinvertebrate assemblage data are formatted in a similar manner; however, rarely can data sets from two separate entities be joined without some manipulation. The data preparation functions outlined below manipulate the data to meet formatting requirements necessary for using the contained custom functions in the bibi2.0 and mmir packages. For any of the functions to be useful, the user must first properly prepare their data using the provided functions outlined below.  
+
+These scripts are designed to be pulled from an MS Access database, which must have the following tables: TAB_EVENT, TAB_STATIONS, TAB_PROJECT, TAB_WQ_DATA, TAB_PARAMETER_WQ, TAB_HABITAT_ASSESSMENT, _TAB_HABITAT_PARAMETERS, TAB_TAXONOMIC_COUNT, TAB_HUC_12, TAB_PROGRAM, TAB_MASTER_TAXA_LIST.
+
 
 (!!!CHECK THIS) Several columns must exist in every file uploaded, or the data preparation will fail: *STATION_ID*, *DATE*, *FINAL_ID*, and *REPORTING_VALUE*. If these four column headings are not present, the *data_prep* function will fail. Additionally, if the column heading *EVENT_ID* does not already exist, the *STATION_ID*, *DATE*, *AGENCY_CODE*, and *SAMPLE_NUMBER* are concatenated to form the *EVENT_ID*, a unique identifier to each sampling event that prevents data from being incorrectly aggregated. For example, data collected at the same station but on different dates will not be aggregated together during the preparation process because the *EVENT_ID*'s will be different due to the inclusion of *DATE*.  
 
 The [Integrated Taxonomic Information System (ITIS)](https://www.itis.gov/) is an online database managed by federal agencies that attempts to provide the current taxonomic nomenclature. The Taxonomic Serial Number (TSN), a unique identification number assigned to each taxon, was also adopted from ITIS.gov. If the taxon was not found in ITIS but was valid based on a review of the literature, the taxon was assigned a unique negative integer. The negative integers will never overlap with the positive integers used by ITIS, allowing the table to accommodate additional taxa from ITIS without issue. The TSNs are reflected in the *TSN_FINAL* column in the Master Taxa List. It must also include a *FINAL_ID* column indicating the lowest taxonomic rank represented in a given row. Additionally, the Master Taxa List must contain each of the following taxonomic ranks: Phylum, Subphylum, Class, Subclass, Order, Suborder, Family, Subfamily, Tribe, Genus, Species.  Finally, if the user wants to calculate any of the metrics related to these taxonomic attributes, the table must also contain contain Tolerance Values (TV), Functional Feeding Groups (FFG), Habits, and Beck's Class.   
 
-**1.1** Load the following packages into the environment. A package must be installed before it can be opened. To install a package, use `install.packages(" ")`.  
+**1.1** Set the working directory to where the documents will be saved using `setwd("")"`.Load the following packages into the environment. A package must be installed before it can be opened. To install a package, use `install.packages(" ")`.  
 
 *mmir* is a custom package developed by Zachary Smith to calculate taxonomic community metrics. The development version can be downloaded from the [ICPRB GitHub account](https://github.com/InterstateCommissionPotomacRiverBasin/mmir) using `devtools::install_github(repo = "InterstateCommissionPotomacRiverBasin/mmir")`. After the installation, *mmir* must be loaded into the environment using `library()`.
 
@@ -33,10 +36,12 @@ library(RODBC) # For Windows 32-bit; see 1.2
 library(DBI)
 library(magrittr)
 library(vegan)
-library(toolbox) # Download from Github (https://github.com/zsmith27/toolbox), then use: devtools::install_github("zsmith27/toolbox")
 library(ggplot2)
 ```
-**1.2** Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. Both directions are outlined below. Then, the bibi2.0 function, `clean_data_frame()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data. 
+**1.2** Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. Both directions are outlined below. 
+
+Then, the bibi2.0 function, `clean_data_frame()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data.  
+
 Windows 64-bit:
 ```{r}
 channel <- dbConnect(odbc(), "CBIBI_2017")
@@ -110,7 +115,7 @@ prep.df <- prep_data(tab.list$tab_taxonomic_count,
                      tab.list$tab_project,
                      tab.list$tab_huc_12,
                      agg_sample_num = TRUE,
-                     development = TRUE) # Should this be set to false?
+                     development = FALSE) # Should this be set to false?
 
 rm(tab.list)
 ```
@@ -163,23 +168,28 @@ taxa.df <- prep.df2 %>%
 taxa.df <- prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)
 ```
 **2. CALCULATE THE BIOLOGICAL METRICS**  
-Once the data is in the proper format, the metrics can be calcualted quickly. The following scripts compute every metric for each unique_id. 
+Now that the data are in the proper format, the biological metrics can be calcualted using mmir. To streamline this process, all of the metrics are computed for each unique_id. Later on, metrics specific to each bioregion will be selected out.  
+
+The first step is to generate a new data frame of the non-rarefied and rarefied data, both of which are needed as some metrics require rarefied data and some do not.  
+
+Next, a data frame, *metrics.key*, will be generated. *metrics.key* initially only contains the following columns: unique_id, icprb_bioregion_id, event_latitude, event_longitude, and huc_12, but each calculated metric is appended. Once the calculations have been completed, the output will be *metrics.key* with the initial columns, plus a column for each metric. 
 ```{r}
-non_rare <- prep.df2 %>% # non-rarefied data frame from above
+# Create a data frame of the non-rarefied and rarefied data.
+non_rare <- prep.df2 %>%
    arrange(unique_id) %>%
    ungroup()
 
-rare <- taxa.df %>%    # rarefied data frame from above
+rare <- taxa.df %>%
    arrange(unique_id) %>%
    ungroup()
 
-## Metric calculations:
-
-metrics.key <- non_rare %>%              
+# Create the metrics.key data frame.
+ metrics.key <- non_rare %>%              
   select(unique_id, icprb_bioregion_id, event_latitude, event_longitude, huc_12) %>%
   unique() %>%
   arrange(unique_id) 
 
+# Calculate the metrics. Use long.df to specify which data frame to use (non-rarefied or rarefied. First, the non-rarefied data will be used.)
   metrics.key$aspt_mod <- taxa_tol_index( 
   long.df = non_rare,
   unique.id.col = unique_id,
@@ -200,7 +210,7 @@ metrics.key <- non_rare %>%
   taxon.col = order,
   taxon = "diptera")
   
-  metrics.key$gold <- 100 - (metrics.key$pct_gastro_oligo + metrics.key$pct_diptera) # was 1-x, but in appendix, should be 100-x
+  metrics.key$gold <- 100 - (metrics.key$pct_gastro_oligo + metrics.key$pct_diptera) 
   
   metrics.key$hbi <- taxa_tol_index(
   long.df = non_rare,
@@ -213,7 +223,7 @@ metrics.key <- non_rare %>%
   unique.id.col = unique_id,
   count.col = reporting_value,
   taxon.col = phylum,
-  taxon = "arthropoda") # was a typo
+  taxon = "arthropoda") 
   
   metrics.key$pct_burrow <- taxa_pct(
   long.df = non_rare,
@@ -437,7 +447,7 @@ metrics.key <- non_rare %>%
   long.df = non_rare,
   unique.id.col = unique_id,
   count.col = reporting_value,
-  taxon.col = family, # was suborder, should be family
+  taxon.col = family,
   taxon = c(
     "aeshnidae",
     "ameletidae",
@@ -493,7 +503,7 @@ metrics.key <- non_rare %>%
     "uenoidae",
     "viviparidae"))
   
-# Richness/Diversity metrics require rarefied data.
+# Richness/Diversity metrics require rarefied data, so switch the long.df from non_rare to rare.
   
   metrics.key$margalefs = taxa_div(
   long.df = rare,
@@ -501,9 +511,7 @@ metrics.key <- non_rare %>%
   count.col = rare_count, 
   high.taxa.col = family,
   job = "margalef")
-  # low.taxa.col = NULL, was included, but metric runs when removed
-
-  # hand-calculate pct_ept_rich
+  
   taxa_count <- rare %>%
     group_by(unique_id) %>%
      filter(!is.na(bibi_tv)) %>%
@@ -514,12 +522,11 @@ metrics.key <- non_rare %>%
         tally(order %in% c("ephemeroptera", "plecoptera", "trichoptera"))
     metrics.key$pct_ept_rich <- (ept_count$n / taxa_count$n)*100
   
-  # hand-calculate pct_ept_rich_no_tol
   ept_no_tol_count <- rare %>%
     group_by(unique_id) %>%
      filter(!is.na(bibi_tv)) %>% 
       tally(order %in% c("ephemeroptera", "plecoptera", "trichoptera") & bibi_tv %in% c("0","1","2","3","4","5","6"))
-   metrics.key$pct_ept_rich_no_tol <- (ept_no_tol_count$n/taxa_count$n)*100
+    metrics.key$pct_ept_rich_no_tol <- (ept_no_tol_count$n/taxa_count$n)*100
   
   metrics.key$pielou <- taxa_div(
   long.df = rare,
@@ -527,7 +534,6 @@ metrics.key <- non_rare %>%
   count.col = rare_count, 
   high.taxa.col = family,
   job = "pielou")
-  # low.taxa.col = NULL, was included, but metric runs when removed
   
   metrics.key$rich_burrow <- taxa_rich(
   long.df = rare,
@@ -567,7 +573,7 @@ metrics.key <- non_rare %>%
   metrics.key$rich_ept <- taxa_rich(
   long.df = rare,
   unique.id.col = unique_id,
-  low.taxa.col = order, # think should be order, was habit
+  low.taxa.col = order,
   high.taxa.col = family, 
   taxon = c("ephemeroptera", "plecoptera", "trichoptera"))
 
@@ -642,9 +648,10 @@ metrics.key <- non_rare %>%
   taxon = "trichoptera")
   
 print(metrics.key)
+# Also view the metrics.key by opening it from the Environment tab on the right.
 ```
-**5. METRIC SCORING**  
-**5.1** Subset the data by bioregion.
+**3. METRIC SCORING**  
+**3.1** Subset *metrics.key* by bioregion, creating a new data frame for each of the twelve bioregions.
 ```{r}
 NAPU <- metrics.key %>% filter(icprb_bioregion_id == "napu")
 NCA <- metrics.key %>% filter(icprb_bioregion_id == "nca")
@@ -659,7 +666,7 @@ SGV <- metrics.key %>% filter(icprb_bioregion_id == "sgv")
 LNP <- metrics.key %>% filter(icprb_bioregion_id == "lnp")
 PIED <- metrics.key %>% filter(icprb_bioregion_id == "pied")
 ```
-**5.2** Create a vector for each of the twelve bioregions that contains the names of the metrics specific to that bioregion.
+**3.2** Create a vector that contains the metrics specific to each of the twelve bioregions. A list of the metrics in each bioregion can be found in Table 15, Page 44 of the Final Report. One change has been made from the original list of metrics: pct_predator was removed from NAPU, as it was deemed unnecessary.  
 ```{r}
 #Northern Appalachian Plateau and Uplands (NAPU)
 NAPU_score <- NAPU %>%
@@ -911,7 +918,15 @@ PIED_score <- PIED %>%
     "rich_ephemeroptera",
     "rich_trichoptera")
 ```
-**5.3** Score the metrics. The [Metric Thresholds](https://www.potomacriver.org/wp-content/uploads/2014/12/metric_thresholds_06292017.csv) table was used to determine whether a metric increased or decreased with disturbance, allowing for the selection of the correct scoring equation to use (Final Report, page 21). The Metric Thresholds table also contains *ref_median* and *bound* columns, which correspond to *X~M~* and *X~T~* in the equations, respectively.
+**3.3** Score the metrics:  
+
+1. Scroll to Final Report Table 15, Page 44. This table can also be [downloaded](https://www.potomacriver.org/wp-content/uploads/2014/12/metric_thresholds_06292017.csv) from the ICPRB website, but it will need to be filtered so that it only contains bioregion and family data.  
+
+2. Use the **Influence of Disturbance** column to determine whether a given metric increases or decreases with disturbance.  
+
+3. On Final Report Page 21, select Equation 5 if the metric decreases with disturbance and Equation 6 if the metric increases with disrutbance. 
+
+4. Refer to Table 15 again. The **Reference Median** and **Bound** columns correspond to *X~M~* and *X~T~* in the equations, respectively. The scoring equations are implemented below.
 
 NAPU Metric Scoring
 ```{r}
@@ -1789,24 +1804,26 @@ PIED_score$score_rich_trichoptera <-
     PIED_score$rich_trichoptera < 0.45 ~ 0,
     TRUE ~ ((PIED_score$rich_trichoptera-0.45)/(2.03-0.45))*100)
 ```
-**6. CALCULATING THE CHESSIE BIBI**  
+**4. CALCULATING THE CHESSIE BIBI**  
+Average the metric score columns for each unique_id with `rowMeans` and `[row,column]`. In `[row,column]`, 'row' is left blank, indicating that all rows are to be used, and 'column' is filled in with the column numbers containing scores.    
 
-Average the metric score columns across the unique ID rows. The Chessie BIBI of each unique sampling instance will be outputted in a column called "chessie_bibi." 
+The resulting mean value is the Chessie BIBI. It is assigned using `"bioregion"_score$chessie_bibi` and outputted in a column called **chessie_bibi**. `na.rm = T`  excludes any cells that contain an NA from the calculation. 
 ```{r}
 NAPU_score$chessie_bibi <- rowMeans(NAPU_score[ ,25:43], na.rm = T)
-NCA_score$chessie_bibi <- rowMeans(NCA_score[ ,15:23], na.rm = T)
-CA_score$chessie_bibi <- rowMeans(CA_score[ ,19:31], na.rm = T)
-MAC_score$chessie_bibi <- rowMeans(MAC_score[ ,18:29], na.rm = T)
-SEP_score$chessie_bibi <- rowMeans(SEP_score[ ,17:26], na.rm = T)
+NCA_score$chessie_bibi  <- rowMeans(NCA_score[ ,15:23], na.rm = T)
+CA_score$chessie_bibi   <- rowMeans(CA_score[ ,19:31], na.rm = T)
+MAC_score$chessie_bibi  <- rowMeans(MAC_score[ ,18:29], na.rm = T)
+SEP_score$chessie_bibi  <- rowMeans(SEP_score[ ,17:26], na.rm = T)
 BLUE_score$chessie_bibi <- rowMeans(BLUE_score[ ,11:15], na.rm = T) 
-NRV_score$chessie_bibi <- rowMeans(NRV_score[ ,14:21], na.rm = T)
-SRV_score$chessie_bibi <- rowMeans(SRV_score[ ,21:35], na.rm = T)
-UNP_score$chessie_bibi <- rowMeans(UNP_score[ ,18:29], na.rm = T)
-SGV_score$chessie_bibi <- rowMeans(SGV_score[ ,27:47], na.rm = T) 
-LNP_score$chessie_bibi <- rowMeans(LNP_score[ ,15:23], na.rm = T)
+NRV_score$chessie_bibi  <- rowMeans(NRV_score[ ,14:21], na.rm = T)
+SRV_score$chessie_bibi  <- rowMeans(SRV_score[ ,21:35], na.rm = T)
+UNP_score$chessie_bibi  <- rowMeans(UNP_score[ ,18:29], na.rm = T)
+SGV_score$chessie_bibi  <- rowMeans(SGV_score[ ,27:47], na.rm = T) 
+LNP_score$chessie_bibi  <- rowMeans(LNP_score[ ,15:23], na.rm = T)
 PIED_score$chessie_bibi <- rowMeans(PIED_score[ ,14:21], na.rm = T) 
 ```
-** Assign narrative ratings (Excellent, Very Good, Fair, Poor, Very Poor).**
+**5. ASSIGN NARRATIVE RATINGS** 
+Use Table 5, Final Report Page 27 to assign narrative ratings of Excellent, Very Good, Fair, Poor, or Very Poor to the Chessie BIBI value. 
 ```{r}
 NAPU_score$rating <-
   case_when(
@@ -1915,9 +1932,9 @@ PIED_score$rating <-
     PIED_score$chessie_bibi >= 73.2 & PIED_score$chessie_bibi < 81.8 ~ "good",
     PIED_score$chessie_bibi >= 81.8 ~ "excellent",
     TRUE ~ "ERROR")
-
 ```
-Merge the data from the individual bioregions into one large data frame that contains the Chessie BIBI and narrative rating for all unique IDs.
+** 6. VISUALIZATION**
+6.1 Select out the **unique_id**, **icprb_bioregion_id**, **chessie_bibi**, and **rating** columns from each bioregion. Merge these data into one large data frame, *bibi_ratings_combined*, using `rbind()`. 
 ```{r}
 NAPU_sub <- NAPU_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
 NCA_sub <- NCA_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
@@ -1944,7 +1961,7 @@ bind9 <- rbind(bind8, SGV_sub)
 bind10 <- rbind(bind9, LNP_sub)
 bibi_ratings_combined <- rbind(bind10, PIED_sub)
 ```
-Create a stacked bar chart of the ratings of each bioregion.
+6.2 Create a stacked bar chart of the ratings of each bioregion with `ggplot2`.
 ```{r echo=TRUE}
 stacked_bar <- bibi_ratings_combined %>% 
   group_by(icprb_bioregion_id) %>% 
@@ -1952,21 +1969,20 @@ stacked_bar <- bibi_ratings_combined %>%
   group_by(icprb_bioregion_id, rating, total) %>% 
   summarize(count = n()) %>% 
   ungroup() %>% 
-  mutate(percent = count / total * 100,
-         rating = factor(rating, levels = c("excellent", "good", "fair", "poor", "very_poor"))) %>% 
+  mutate(percent = count / total * 100, rating = factor(rating, levels = c("excellent", "good", "fair", "poor", "very_poor"))) %>% 
   arrange(icprb_bioregion_id, rating)
 
-ggplot(stacked_bar) + geom_bar(aes(y = percent, x = icprb_bioregion_id, fill = rating), data = stacked_bar, 
-                           stat="identity") + ggtitle("Chessie BIBI Index Scores for family-level bioregion index") + ylab("Percent") + xlab("Bioregion") +
-  scale_fill_manual(name = "Rating",
-                    labels = c("Excellent", "Good", "Fair", "Poor", "Very poor"),
-                    values = c("excellent" = "darkgreen",
+  ggplot(stacked_bar) + geom_bar(aes(y = percent, x = icprb_bioregion_id, fill = rating), data = stacked_bar, 
+                           stat="identity") + ggtitle("Chessie BIBI Index Scores for Family-level Bioregion Indices") + ylab("Percent (%)") + xlab("Bioregion") +
+                              scale_fill_manual(name = "Rating",
+                              labels = c("Excellent", "Good", "Fair", "Poor", "Very poor"),
+                              values = c("excellent" = "darkgreen",
                                "good" = "green3",
                                "fair" = "yellow2",
                                "poor" = "orange2",
                                "very_poor" = "red3"))
 ```
-Pie charts of ratings
+6.3 Create a pie chart of the combined ratings from each bioregion using base R. Percentages of each rating category are hand-entered from *pie_total* into `slices`.  
 ```{r echo=TRUE}
 pie_total <- bibi_ratings_combined %>%
   mutate(total = n()) %>% 
@@ -1975,7 +1991,7 @@ pie_total <- bibi_ratings_combined %>%
   ungroup() %>%
   mutate(percent = count / total * 100)
 
-slices <- c(21.30704, 18.39028, 16.58335, 25.91149, 17.80784)
+slices <- c(21.61224, 18.30679, 16.45164, 26.03879, 17.59053)
 lbls <- c("Excellent", "Good", "Fair", "Poor", "Very Poor")
 pct <- round(slices/sum(slices)*100)
 lbls <- paste(lbls, pct)
