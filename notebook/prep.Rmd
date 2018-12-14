@@ -3,24 +3,36 @@ title: "Directions for Calculating the Chessie BIBI in RStudio"
 output:
   html_document:
     df_print: paged
+    toc: true
+    toc_float: true
 ---
 **INTRODUCTION**  
-This R-script and documentation is intended as a supplement to the [Smith et al. (2017) final report](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Report_Final_5-25-2017.pdf) and [appendices](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Appendix_Final_5-25-2017.pdf). Use the following scripts to calculate the family-and bioregion- level “Chessie BIBI,” or Chesapeake Basin-wide Index of Biotic Integrity for streams and wadeable rivers in the Chesapeake Bay watershed.    
+This R-script and documentation is intended as a supplement to the [Smith et al. (2017) final report](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Report_Final_5-25-2017.pdf) and [appendices](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Appendix_Final_5-25-2017.pdf). Use the following scripts to calculate the family-and bioregion- level “Chessie BIBI,” or Chesapeake Basin-wide Index of Biotic Integrity for streams and wadeable rivers in the Chesapeake Bay watershed.      
 
 **BEFORE YOU GET STARTED**
-In order to implement the following R scripts, RStudio must be installed, preferably on a Windows machine. If RStudio is not installed, it can be downloaded for free from [https://www.rstudio.com/](https://www.rstudio.com/). This [webpage](https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/) will help guide you through the short installation process.     
+In order to implement the following R scripts, RStudio must be installed. If RStudio is not installed, it can be downloaded for free from [https://www.rstudio.com/](https://www.rstudio.com/). This [webpage](https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/) will help guide you through the short installation process. Once installed, or if already installed, the scripts are designed to be copied and pasted into RStudio. Currently, a Windows machine must be used for data importation. For those unfamiliar with RStudio, each time a dataframe is created, it can be viewed by typing in `View(name)` in the console or by clicking its name in the Environment tab on the right.           
 
 **1. DATA PREPARATION**   
-Most macroinvertebrate assemblage data are formatted in a similar manner; however, rarely can data sets from two separate entities be joined without some manipulation. The data preparation functions outlined below manipulate the data to meet formatting requirements necessary for using the contained custom functions in the bibi2.0 and mmir packages. For any of the functions to be useful, the user must first properly prepare their data using the provided functions outlined below.  
+Most macroinvertebrate assemblage data are formatted in a similar manner; however, rarely can data sets from two separate entities be joined without some manipulation. The data preparation functions outlined below manipulate the data to meet formatting requirements necessary for using the contained custom functions in the *bibi2.0* and *mmir* packages. For any of the functions to be useful, the user must first prepare their data using the provided functions outlined below.  
 
-These scripts are designed to be pulled from an MS Access database, which must have the following tables: TAB_EVENT, TAB_STATIONS, TAB_PROJECT, TAB_WQ_DATA, TAB_PARAMETER_WQ, TAB_HABITAT_ASSESSMENT, _TAB_HABITAT_PARAMETERS, TAB_TAXONOMIC_COUNT, TAB_HUC_12, TAB_PROGRAM, TAB_MASTER_TAXA_LIST.
-
-
-(!!!CHECK THIS) Several columns must exist in every file uploaded, or the data preparation will fail: *STATION_ID*, *DATE*, *FINAL_ID*, and *REPORTING_VALUE*. If these four column headings are not present, the *data_prep* function will fail. Additionally, if the column heading *EVENT_ID* does not already exist, the *STATION_ID*, *DATE*, *AGENCY_CODE*, and *SAMPLE_NUMBER* are concatenated to form the *EVENT_ID*, a unique identifier to each sampling event that prevents data from being incorrectly aggregated. For example, data collected at the same station but on different dates will not be aggregated together during the preparation process because the *EVENT_ID*'s will be different due to the inclusion of *DATE*.  
+These scripts are designed to be pulled from an MS Access database, which must have the following tables:
+  TAB_EVENT: must have TSN_final and event_id columns,
+  TAB_STATIONS: must have station_id column, 
+  TAB_PROJECT: must have project_id column, 
+  TAB_WQ_DATA: must have reporting parameter, sample_replicate_type, event_id, , 
+  TAB_PARAMETER_WQ, NEEDED???
+  TAB_HABITAT_ASSESSMENT: habitat_reporting_parameter, event_id, sample_number reporting_parameter_value, 
+  TAB_HABITAT_PARAMETERS NEEDED???, 
+  TAB_TAXONOMIC_COUNT: must have event_id and tsn_final, 
+  TAB_HUC_12: must have huc_12 column, 
+  TAB_PROGRAM, 
+  TAB_MASTER_TAXA_LIST.
 
 The [Integrated Taxonomic Information System (ITIS)](https://www.itis.gov/) is an online database managed by federal agencies that attempts to provide the current taxonomic nomenclature. The Taxonomic Serial Number (TSN), a unique identification number assigned to each taxon, was also adopted from ITIS.gov. If the taxon was not found in ITIS but was valid based on a review of the literature, the taxon was assigned a unique negative integer. The negative integers will never overlap with the positive integers used by ITIS, allowing the table to accommodate additional taxa from ITIS without issue. The TSNs are reflected in the *TSN_FINAL* column in the Master Taxa List. It must also include a *FINAL_ID* column indicating the lowest taxonomic rank represented in a given row. Additionally, the Master Taxa List must contain each of the following taxonomic ranks: Phylum, Subphylum, Class, Subclass, Order, Suborder, Family, Subfamily, Tribe, Genus, Species.  Finally, if the user wants to calculate any of the metrics related to these taxonomic attributes, the table must also contain contain Tolerance Values (TV), Functional Feeding Groups (FFG), Habits, and Beck's Class.   
 
-**1.1** Set the working directory to where the documents will be saved using `setwd("")"`.Load the following packages into the environment. A package must be installed before it can be opened. To install a package, use `install.packages(" ")`.  
+**1.1** Set the working directory to a location where the scripts can be saved using `setwd("")"`. Don't forget to use a forward slash `/` instead of a backward slash `\` in the path name.   
+
+Load the following packages into the environment. The packages must be installed before they can be opened. To install a package, use `install.packages(" ")`, then open with `library()`.  
 
 *mmir* is a custom package developed by Zachary Smith to calculate taxonomic community metrics. The development version can be downloaded from the [ICPRB GitHub account](https://github.com/InterstateCommissionPotomacRiverBasin/mmir) using `devtools::install_github(repo = "InterstateCommissionPotomacRiverBasin/mmir")`. After the installation, *mmir* must be loaded into the environment using `library()`.
 
@@ -40,7 +52,7 @@ library(ggplot2)
 ```
 **1.2** Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. Both directions are outlined below. 
 
-Then, the bibi2.0 function, `clean_data_frame()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data.  
+Then, the *bibi2.0* function, `clean_data_frame()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data.  
 
 Windows 64-bit:
 ```{r}
@@ -90,22 +102,22 @@ tab.vec <- c("TAB_EVENT",
 
 RODBC::odbcCloseAll()
 ```
-**1.3** Join the Master Taxa List to the taxonomic count table using the *tsn_final* column. Then, apply the `prep_taxa()` function in the bibi2.0 package to perform taxa eclusions and roll-ups (Final Report Section B.iii).
+**1.3** Join the Master Taxa List to the taxonomic count table using the *tsn_final* column. Then, apply the `prep_taxa()` function in the *bibi2.0* package to perform taxa eclusions and roll-ups (Final Report, Pages 6-7).
 ```{r}
  tab.list$tab_taxonomic_count <- tab.list$tab_taxonomic_count %>% 
    dplyr::mutate(tsn_final = str_replace_all(tsn_final, "(?<![0-9])0+", "")) %>% 
    left_join(tab.list$tab_master_taxa_list, by = "tsn_final") %>% 
    prep_taxa() 
 ```
-**1.4** Apply the `prep_data()` function from the bibi2.0 package to the indicated tables. Several prepping functions are nested within `prep_data()`:  
+**1.4** Apply the `prep_data()` function from the *bibi2.0* package to the indicated tables. Several prepping functions are nested within `prep_data()`:  
 
 1) Water quality: select only specific conductivity, dissolved oxygen, and pH;  
 
-2) Habitat: select only epifaunal substrate, bank stability, embeddedness, channel alteration, riffle/run/pool/ ratio, flow, bank vegetation, and sedimentation;   
+2) Habitat: select only epifaunal substrate, bank stability, embeddedness, channel alteration, riffle/run/pool/ ratio, flow, bank vegetation, and sedimentation, then calculate habitat conditions;   
 
 3) Method: exclude samples collected from December to February; include only samples from 1^st^ - 4^th^ order streams; restrict the sampling method to kick-net or similar procedures.    
 
-The output is `prep.df`, one large data frame which contains all of the taxa, water quality, and habitat data.  
+The output is **prep.df**, one large data frame which contains all of the taxa, water quality, and habitat data.  
 ```{r cache=TRUE}
 prep.df <- prep_data(tab.list$tab_taxonomic_count,
                      tab.list$tab_wq_data,
@@ -119,7 +131,7 @@ prep.df <- prep_data(tab.list$tab_taxonomic_count,
 
 rm(tab.list)
 ```
-**1.5** Convert Functional Feeding Group (ffg) and Habit abbreviations to full names. This results in the addition of two new columns, *ffg* and *habit*, to `prep.df2`.
+**1.5** Convert the Functional Feeding Group (ffg) and Habit abbreviations to full names. This adds two new columns, *ffg* and *habit*, to **prep.df2**, which will be used instead of *bibi_ffg* and *bibi_habit*.
 ```{r}
 prep.df2 <-
     dplyr::mutate(prep.df, ffg = case_when(
@@ -146,14 +158,14 @@ prep.df2 <-
   )
 )
 ```
-**1.6** Perform general cleaning of the data frame. The resulting data frame is `taxa.df`.
+**1.6** Perform general cleaning of the data frame, and select out only the indicated columns. The resulting data frame is **taxa.df**, which will be the input to the rarefaction step.
 ```{r cache=TRUE}
 taxa.df <- prep.df2 %>% 
   ungroup() %>% 
   select(unique_id, icprb_bioregion_id, reporting_value,
          final_id, 
          phylum, subphylum, class, subclass,
-         order, suborder, family, subfamily, tribe, genus, habit, ffg, bibi_tv) %>%   # I added habit, ffg, bibi_tv
+         order, suborder, family, subfamily, tribe, genus, habit, ffg, bibi_tv) %>%   
   group_by_at(vars(-reporting_value)) %>% 
   summarize(reporting_value = sum(reporting_value)) %>% 
   ungroup() %>% 
@@ -168,11 +180,11 @@ taxa.df <- prep.df2 %>%
 taxa.df <- prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)
 ```
 **2. CALCULATE THE BIOLOGICAL METRICS**  
-Now that the data are in the proper format, the biological metrics can be calcualted using mmir. To streamline this process, all of the metrics are computed for each unique_id. Later on, metrics specific to each bioregion will be selected out.  
+Now that the data are in the proper format and the samples have been rarefied, the biological metrics can be calcualted using *mmir*. To streamline this process, all of the metrics are computed for each unique_id. Later on, metrics specific to each bioregion will be selected out.  
 
-The first step is to generate a new data frame of the non-rarefied and rarefied data, both of which are needed as some metrics require rarefied data and some do not.  
+The first step is to generate a new data frame for the non-rarefied and rarefied data, both of which are needed as some metrics require rarefied data, but thers do not.  
 
-Next, a data frame, *metrics.key*, will be generated. *metrics.key* initially only contains the following columns: unique_id, icprb_bioregion_id, event_latitude, event_longitude, and huc_12, but each calculated metric is appended. Once the calculations have been completed, the output will be *metrics.key* with the initial columns, plus a column for each metric. 
+Next, a data frame, **metrics.key**, will be generated. **metrics.key** initially only contains the following columns: unique_id, icprb_bioregion_id, event_latitude, event_longitude, and huc_12, but each calculated metric is appended.
 ```{r}
 # Create a data frame of the non-rarefied and rarefied data.
 non_rare <- prep.df2 %>%
@@ -648,10 +660,9 @@ rare <- taxa.df %>%
   taxon = "trichoptera")
   
 print(metrics.key)
-# Also view the metrics.key by opening it from the Environment tab on the right.
 ```
 **3. METRIC SCORING**  
-**3.1** Subset *metrics.key* by bioregion, creating a new data frame for each of the twelve bioregions.
+**3.1** Subset **metrics.key** by bioregion, creating a new data frame for each of the twelve bioregions.
 ```{r}
 NAPU <- metrics.key %>% filter(icprb_bioregion_id == "napu")
 NCA <- metrics.key %>% filter(icprb_bioregion_id == "nca")
@@ -666,7 +677,7 @@ SGV <- metrics.key %>% filter(icprb_bioregion_id == "sgv")
 LNP <- metrics.key %>% filter(icprb_bioregion_id == "lnp")
 PIED <- metrics.key %>% filter(icprb_bioregion_id == "pied")
 ```
-**3.2** Create a vector that contains the metrics specific to each of the twelve bioregions. A list of the metrics in each bioregion can be found in Table 15, Page 44 of the Final Report. One change has been made from the original list of metrics: pct_predator was removed from NAPU, as it was deemed unnecessary.  
+**3.2** Create a data frame that contains the metrics specific to each of the twelve bioregions. A list of the metrics in each bioregion can be found in Table 15, Page 44 of the Final Report. One change has been made from the original list of metrics: pct_predator was removed from NAPU, as it was deemed unnecessary.  
 ```{r}
 #Northern Appalachian Plateau and Uplands (NAPU)
 NAPU_score <- NAPU %>%
@@ -922,11 +933,11 @@ PIED_score <- PIED %>%
 
 1. Scroll to Final Report Table 15, Page 44. This table can also be [downloaded](https://www.potomacriver.org/wp-content/uploads/2014/12/metric_thresholds_06292017.csv) from the ICPRB website, but it will need to be filtered so that it only contains bioregion and family data.  
 
-2. Use the **Influence of Disturbance** column to determine whether a given metric increases or decreases with disturbance.  
+2. Use the *Influence of Disturbance* column to determine whether a given metric increases or decreases with disturbance.  
 
 3. On Final Report Page 21, select Equation 5 if the metric decreases with disturbance and Equation 6 if the metric increases with disrutbance. 
 
-4. Refer to Table 15 again. The **Reference Median** and **Bound** columns correspond to *X~M~* and *X~T~* in the equations, respectively. The scoring equations are implemented below.
+4. Refer to Table 15 again. The *Reference Median* and *Bound* columns correspond to *X~M~* and *X~T~* in the equations, respectively. The scoring equations are implemented below.
 
 NAPU Metric Scoring
 ```{r}
@@ -1805,9 +1816,9 @@ PIED_score$score_rich_trichoptera <-
     TRUE ~ ((PIED_score$rich_trichoptera-0.45)/(2.03-0.45))*100)
 ```
 **4. CALCULATING THE CHESSIE BIBI**  
-Average the metric score columns for each unique_id with `rowMeans` and `[row,column]`. In `[row,column]`, 'row' is left blank, indicating that all rows are to be used, and 'column' is filled in with the column numbers containing scores.    
+Average the metric score columns for each unique_id with `rowMeans` and `[row,column]`. In `[row,column]`, 'row' is left blank, indicating that all rows are to be used, and 'column' has the range of column numbers containing scores. `na.rm = T`  excludes any cells that contain an NA from the calculation.    
 
-The resulting mean value is the Chessie BIBI. It is assigned using `"bioregion"_score$chessie_bibi` and outputted in a column called **chessie_bibi**. `na.rm = T`  excludes any cells that contain an NA from the calculation. 
+The resulting mean value is the Chessie BIBI. It is assigned using `"bioregion"_score$chessie_bibi` and outputted in a column called *chessie_bibi*.  
 ```{r}
 NAPU_score$chessie_bibi <- rowMeans(NAPU_score[ ,25:43], na.rm = T)
 NCA_score$chessie_bibi  <- rowMeans(NCA_score[ ,15:23], na.rm = T)
@@ -1933,8 +1944,8 @@ PIED_score$rating <-
     PIED_score$chessie_bibi >= 81.8 ~ "excellent",
     TRUE ~ "ERROR")
 ```
-** 6. VISUALIZATION**
-6.1 Select out the **unique_id**, **icprb_bioregion_id**, **chessie_bibi**, and **rating** columns from each bioregion. Merge these data into one large data frame, *bibi_ratings_combined*, using `rbind()`. 
+**6. VISUALIZATION**  
+**6.1** Select out the *unique_id*, *icprb_bioregion_id*, *chessie_bibi*, and *rating* columns from each bioregion. Merge these data into one large data frame, **bibi_ratings_combined**, using `rbind()`. 
 ```{r}
 NAPU_sub <- NAPU_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
 NCA_sub <- NCA_score %>% select(unique_id, icprb_bioregion_id, chessie_bibi, rating)
@@ -1961,7 +1972,7 @@ bind9 <- rbind(bind8, SGV_sub)
 bind10 <- rbind(bind9, LNP_sub)
 bibi_ratings_combined <- rbind(bind10, PIED_sub)
 ```
-6.2 Create a stacked bar chart of the ratings of each bioregion with `ggplot2`.
+**6.2** Create a stacked bar chart of the ratings of each bioregion with `ggplot2`.
 ```{r echo=TRUE}
 stacked_bar <- bibi_ratings_combined %>% 
   group_by(icprb_bioregion_id) %>% 
@@ -1982,7 +1993,7 @@ stacked_bar <- bibi_ratings_combined %>%
                                "poor" = "orange2",
                                "very_poor" = "red3"))
 ```
-6.3 Create a pie chart of the combined ratings from each bioregion using base R. Percentages of each rating category are hand-entered from *pie_total* into `slices`.  
+**6.3** Create a pie chart of the combined ratings from each bioregion using base R. Percentages of each rating category are hand-entered from *pie_total* into `slices`.  
 ```{r echo=TRUE}
 pie_total <- bibi_ratings_combined %>%
   mutate(total = n()) %>% 
