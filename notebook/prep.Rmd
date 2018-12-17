@@ -32,17 +32,18 @@ The [Integrated Taxonomic Information System (ITIS)](https://www.itis.gov/) is a
 
 ####**1.1** Set the working directory to a location where the scripts can be saved using `setwd("")"`. Don't forget to use a forward slash `/` instead of a backward slash `\` in the path name.   
 
-Load the following packages into the environment. The packages must be installed before they can be opened. To install a package, use `install.packages(" ")`, then open with `library()`.  
+Load the following packages into the environment. The packages must be installed before they can be opened. To install a package, use `install.packages("name")`, then open with `library(name)`.  
 
-*mmir* is a custom package developed by Zachary Smith to calculate taxonomic community metrics. The development version can be downloaded from the [ICPRB GitHub account](https://github.com/InterstateCommissionPotomacRiverBasin/mmir) using `devtools::install_github(repo = "InterstateCommissionPotomacRiverBasin/mmir")`. After the installation, *mmir* must be loaded into the environment using `library()`.
+* *mmir* is a custom package developed by Zachary Smith to calculate taxonomic community metrics. It can be downloaded from the [ICPRB GitHub account](https://github.com/InterstateCommissionPotomacRiverBasin/mmir) using, in RStudio, `devtools::install_github("InterstateCommissionPotomacRiverBasin/mmir")`. After the installation, *mmir* must be loaded into the environment using `library(mmir)`. Note: the *devtools* package must be installed first. 
 
-*bibi2.0* is a custom package developed by Zachary Smith to automate the data preparation process. (HOW CAN OTHERS ACCESS?)
+* *bibi2.0* is a custom package developed by Zachary Smith to automate the data preparation process. It is downloaded in the same manner as *mmir*. Use `devtools::install_github("InterstateCommissionPotomacRiverBasin/bibi2.0")`. Load using `library(bibi2.0)`.
 ```{r message=FALSE}
 library(tidyverse)
 library(stringr)
 library(lubridate)
+library(devtools)
 library(mmir) 
-library(bibi2.0) # Build in R Studio
+library(bibi2.0) 
 library(odbc) # For Windows 64-bit; see 1.2
 library(RODBC) # For Windows 32-bit; see 1.2
 library(DBI)
@@ -50,7 +51,7 @@ library(magrittr)
 library(vegan)
 library(ggplot2)
 ```
-####**1.2** Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. Both directions are outlined below. 
+####**1.2** Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. If the Windows version is not know, follow the directions on [this site](https://support.microsoft.com/en-us/help/13443/windows-which-operating-system) to check. Both directions are outlined below. If the ODBC connection needs to be established, refer to [this](https://www.youtube.com/watch?v=Uh0pLPS3R5Y) YouTube video.
 
 Then, the *bibi2.0* function, `clean_data_frame()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data.  
 
@@ -196,7 +197,7 @@ non_rare <- prep.df2 %>%
 rare <- taxa.df %>%
    arrange(unique_id) %>%
    ungroup()
-
+  
 # Create the metrics.key data frame.
  metrics.key <- non_rare %>%              
   select(unique_id, icprb_bioregion_id, event_latitude, event_longitude, huc_12) %>%
