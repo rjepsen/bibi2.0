@@ -20,3 +20,5 @@ lattice
 vegan
 toolbox
 bindrcpp
+devtools
+usethis

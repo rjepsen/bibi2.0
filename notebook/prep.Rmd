@@ -15,22 +15,26 @@ In order to implement the following R scripts, RStudio must be installed. If RSt
 ###**1. DATA PREPARATION**   
 Most macroinvertebrate assemblage data are formatted in a similar manner; however, rarely can data sets from two separate entities be joined without some manipulation. The data preparation functions outlined below manipulate the data to meet formatting requirements necessary for using the contained custom functions in the *bibi2.0* and *mmir* packages. For any of the functions to be useful, the user must first prepare their data using the provided functions outlined below.  
 
-These scripts are designed to be pulled from an MS Access database, which must have the following tables:
-  TAB_EVENT: must have TSN_final and event_id columns,
-  TAB_STATIONS: must have station_id column, 
-  TAB_PROJECT: must have project_id column, 
-  TAB_WQ_DATA: must have reporting parameter, sample_replicate_type, event_id, , 
-  TAB_PARAMETER_WQ, NEEDED???
-  TAB_HABITAT_ASSESSMENT: habitat_reporting_parameter, event_id, sample_number reporting_parameter_value, 
-  TAB_HABITAT_PARAMETERS NEEDED???, 
-  TAB_TAXONOMIC_COUNT: must have event_id and tsn_final, 
-  TAB_HUC_12: must have huc_12 column, 
-  TAB_PROGRAM, 
-  TAB_MASTER_TAXA_LIST.
+These scripts are designed to be pulled from an MS Access database, which must have the following tables:  
+  TAB_EVENT  
+  TAB_STATIONS     
+  TAB_PROJECT  
+  TAB_WQ_DATA  
+  TAB_HABITAT_ASSESSMENT  
+  TAB_TAXONOMIC_COUNT    
+  TAB_HUC_12
+  TAB_MASTER_TAXA_LIST  
+  
+Three references tables are recommended:  
+  TAB_PROGRAM  
+  TAB_HABITAT_PARAMETERS  
+  TAB_PARAMETER_WQ  
+  
+Information of what specifically needs to go in these tables can be found ???HERE???
 
 The [Integrated Taxonomic Information System (ITIS)](https://www.itis.gov/) is an online database managed by federal agencies that attempts to provide the current taxonomic nomenclature. The Taxonomic Serial Number (TSN), a unique identification number assigned to each taxon, was also adopted from ITIS.gov. If the taxon was not found in ITIS but was valid based on a review of the literature, the taxon was assigned a unique negative integer. The negative integers will never overlap with the positive integers used by ITIS, allowing the table to accommodate additional taxa from ITIS without issue. The TSNs are reflected in the *TSN_FINAL* column in the Master Taxa List. It must also include a *FINAL_ID* column indicating the lowest taxonomic rank represented in a given row. Additionally, the Master Taxa List must contain each of the following taxonomic ranks: Phylum, Subphylum, Class, Subclass, Order, Suborder, Family, Subfamily, Tribe, Genus, Species.  Finally, if the user wants to calculate any of the metrics related to these taxonomic attributes, the table must also contain contain Tolerance Values (TV), Functional Feeding Groups (FFG), Habits, and Beck's Class.   
 
-####**1.1** Set the working directory to a location where the scripts can be saved using `setwd("")"`. Don't forget to use a forward slash `/` instead of a backward slash `\` in the path name.   
+####**1.1** Set the working directory to a location where the scripts can be saved using `setwd("")`. Don't forget to use a forward slash `/` instead of a backward slash `\` in the path name.   
 
 Load the following packages into the environment. The packages must be installed before they can be opened. To install a package, use `install.packages("name")`, then open with `library(name)`.  
 
@@ -63,12 +67,12 @@ tab.vec <- c("TAB_EVENT",
              "TAB_STATIONS",
              "TAB_PROJECT",
              "TAB_WQ_DATA",
-             "TAB_PARAMETER_WQ",
+             #"TAB_PARAMETER_WQ",
              "TAB_HABITAT_ASSESSMENT",
-             "TAB_HABITAT_PARAMETERS",
+             #"TAB_HABITAT_PARAMETERS",
              "TAB_TAXONOMIC_COUNT",
              "TAB_HUC_12",
-             "TAB_PROGRAM",
+             #"TAB_PROGRAM",
              "TAB_MASTER_TAXA_LIST")
 
  tab.list <- purrr::map(tab.vec, function(tab.i) {
@@ -87,12 +91,12 @@ tab.vec <- c("TAB_EVENT",
              "TAB_STATIONS",
              "TAB_PROJECT",
              "TAB_WQ_DATA",
-             "TAB_PARAMETER_WQ",
+             #"TAB_PARAMETER_WQ",
              "TAB_HABITAT_ASSESSMENT",
-             "TAB_HABITAT_PARAMETERS",
+             #"TAB_HABITAT_PARAMETERS",
              "TAB_TAXONOMIC_COUNT",
              "TAB_HUC_12",
-             "TAB_PROGRAM",
+             #"TAB_PROGRAM",
              "TAB_MASTER_TAXA_LIST")
 
  tab.list <- purrr::map(tab.vec, function(tab.i) {
@@ -127,12 +131,10 @@ prep.df <- prep_data(tab.list$tab_taxonomic_count,
                      tab.list$tab_stations,
                      tab.list$tab_project,
                      tab.list$tab_huc_12,
-                     agg_sample_num = TRUE,
+                     agg_sample_num = FALSE,
                      development = FALSE)
 
 rm(tab.list)
-
-prep.df <- prep.df %>% filter(!month %in% c("01", "02", "12"))
 ```
 ####**1.5** Convert the Functional Feeding Group (ffg) and Habit abbreviations to full names. This adds two new columns, *ffg* and *habit*, to **prep.df2**, which will be used instead of *bibi_ffg* and *bibi_habit*.
 ```{r}
@@ -160,6 +162,8 @@ prep.df2 <-
     TRUE ~ "ERROR"
   )
 )
+
+#prep.df2 <- prep.df2 %>% filter(!month %in% c("01", "02", "12"))
 ```
 ####**1.6** Perform general cleaning of the data frame, and select out only the indicated columns. The resulting data frame is **taxa.df**, which will be the input to the rarefaction step.
 ```{r cache=TRUE}
