@@ -1,6 +1,7 @@
 ---
 title: "Directions for Calculating the Chessie BIBI in RStudio"
-output:
+author:
+  output:
   html_document:
     df_print: paged
     toc: true
@@ -10,6 +11,8 @@ output:
 This R-script and documentation is intended as a supplement to the [Smith et al. (2017) final report](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Report_Final_5-25-2017.pdf) and [appendices](https://www.potomacriver.org/wp-content/uploads/2017/05/ChessieBIBI_Appendix_Final_5-25-2017.pdf). Use the following scripts to calculate the family-and bioregion- level “Chessie BIBI,” or Chesapeake Basin-wide Index of Biotic Integrity for streams and wadeable rivers in the Chesapeake Bay watershed.      
 
 ###**BEFORE YOU GET STARTED**  
+The initial setup of the data tables, installation of the custom packages, and establishing the ODBC connection to the database will likely require a decent input of time. Once, however, this is accomplished, running the scripts should be a fairly quick process.      
+
 In order to implement the following R scripts, RStudio must be installed. If RStudio is not installed, it can be downloaded for free from [https://www.rstudio.com/](https://www.rstudio.com/). This [webpage](https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/) details the short installation process. If RStudio is already installed, check the version that is currently being used (Help -> About RStudio). This script was written in Version 1.1.453, so if you have an older version, you may want to upgrade (Help -> Check for Update -> follow instructions). Once installed, or if already installed, the scripts are designed to be copied and pasted into RStudio. Currently, a Windows machine must be used for data importation.   
 
 For those who are new to RStudio, each time a data frame is created, it can be viewed by typing `View(name)` in the console or by clicking its name in the Environment tab on the right.  
@@ -18,23 +21,23 @@ For those who are new to RStudio, each time a data frame is created, it can be v
 Most macroinvertebrate assemblage data are formatted in a similar manner; however, rarely can data sets from two separate entities be joined without some manipulation. The data preparation functions outlined below manipulate the data to meet formatting requirements necessary for using several custom functions. For these functions to be useful, you must first prepare the data using the provided functions outlined below.  
 
 The following tables are required for the scripts to work. They can be pulled from an MS Access database or uploaded as individual csv files.   
-  *TAB_EVENT  
-  *TAB_STATIONS     
-  *TAB_PROJECT  
-  *TAB_WQ_DATA  
-  *TAB_HABITAT_ASSESSMENT  
-  *TAB_TAXONOMIC_COUNT    
-  *TAB_HUC_12
-  *TAB_MASTER_TAXA_LIST  
+* TAB_EVENT  
+* TAB_STATIONS     
+* TAB_PROJECT  
+* TAB_WQ_DATA  
+* TAB_HABITAT_ASSESSMENT  
+* TAB_TAXONOMIC_COUNT    
+* TAB_HUC_12  
+* TAB_MASTER_TAXA_LIST  
   
-Please refer to the (name and url) document for information about setting up the tables above. Data may be entered in uppercase or lowercase, but all text will be converted to lowercase during the data preparation process. The document also contains several keys that explain codes and acronyms that were used. The codes and acronyms can be used as a template for other data sets.     
+Please refer to the (name and url) document and practice data set for information about setting up the tables above. Data may be entered in uppercase or lowercase, but all text will be converted to lowercase during the data preparation process. The document also contains several keys that explain codes and acronyms that were used. The codes and acronyms can be used as a template for your data tables. Finally, it is important that you name all the columns and tables in the same way as they appear in the document, otherwise the scripts will not work.       
 
 ####**1.1** 
 Set the working directory to a location where the scripts can be saved using `setwd("")`. Don't forget to use a forward slash `/` instead of a backward slash `\` in the path name.   
 
-Load the following packages into the environment. The packages must be installed before they can be opened. To install a package, use `install.packages("name")`, then open with `library(name)`.  
+Load the following packages into the environment. The packages must be installed before they can be opened; to check if a package in already installed, refer to the Packages tab on the right. To install a package, either type `install.packages("name")` or use the Install button under the Packages tab. To open the installed libraries, use `library(name)`.  
 
-* *mmir* is a custom package developed by Zachary Smith used to calculate taxonomic community metrics. It can be downloaded from the [ICPRB GitHub account](https://github.com/InterstateCommissionPotomacRiverBasin/mmir) using, in RStudio, `devtools::install_github("InterstateCommissionPotomacRiverBasin/mmir")`. After the installation, *mmir* must be loaded into the environment using `library(mmir)`. Note: the *devtools* package must be installed first. 
+* *mmir* is a custom package developed by Zachary Smith used to calculate taxonomic community metrics. The installation process is currently regrettably tricky and may require a certain degree of "messing with." It can be downloaded from the [ICPRB GitHub account](https://github.com/InterstateCommissionPotomacRiverBasin/mmir) using, in RStudio, `devtools::install_github("InterstateCommissionPotomacRiverBasin/mmir")` or `devtools::install_github("zsmith27/mmir", ref = "dev", force = TRUE, quiet = TRUE)`. If the first path does not work, please try the second. The second may prompt you to install other packages, which you should do. After installing those additional packages, retry the installation path. After the installation, *mmir* must be loaded into the environment using `library(mmir)`. Note: the *devtools* package must be installed first. 
 
 * *bibi2.0* is a custom package developed by Zachary Smith used to automate the data preparation process. It is downloaded in the same manner as *mmir*. Use `devtools::install_github("InterstateCommissionPotomacRiverBasin/bibi2.0")`. Load using `library(bibi2.0)`.
 ```{r message=FALSE}
@@ -52,7 +55,7 @@ library(vegan)
 library(ggplot2)
 ```
 ####**1.2**
-Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. If you don't know which Windows version is on your computer, follow the directions on [this site](https://support.microsoft.com/en-us/help/13443/windows-which-operating-system) to check. Both directions are outlined below. If the ODBC connection needs to be established, refer to [this](https://www.youtube.com/watch?v=Uh0pLPS3R5Y) YouTube video.
+Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. If you don't know which Windows version is on your computer, follow the directions on [this site](https://support.microsoft.com/en-us/help/13443/windows-which-operating-system) to check. Both directions are outlined below. If you need help establishing the ODBC connection, refer to [this](https://www.youtube.com/watch?v=Uh0pLPS3R5Y) YouTube video.
 
 Then, the *mmir* function, `clean_df()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data.  
 
@@ -102,28 +105,35 @@ Import as csv files. Remember to set the working directory to where the csv file
 ```{r eval=FALSE}
 setwd("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV")
 
-read.csv("TAB_EVENT.csv", stringsAsFactors = FALSE)
-read.csv("TAB_STATIONS.csv", stringsAsFactors = FALSE)
-read.csv("TAB_PROJECT.csv", stringsAsFactors = FALSE)
-read.csv("TAB_WQ_DATA.csv", stringsAsFactors = FALSE)
-read.csv("TAB_HABITAT_ASSESSMENT.csv", stringsAsFactors = FALSE)
-read.csv("TAB_TAXONOMIC_COUNT.csv", stringsAsFactors = FALSE)
-read.csv("TAB_HUC_12.csv", stringsAsFactors = FALSE)
-read.csv("TAB_MASTER_TAXA_LIST.csv", stringsAsFactors = FALSE)
+library(data.table)
+TAB_EVENT <- fread("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV/TAB_EVENT.csv", stringsAsFactors = FALSE)
+TAB_STATIONS <- fread("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV/TAB_STATIONS.csv", stringsAsFactors = FALSE)
+TAB_PROJECT <- fread("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV/TAB_PROJECT.csv", stringsAsFactors = FALSE)
+TAB_WQ_DATA <- fread("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV/TAB_WQ_DATA.csv", stringsAsFactors = FALSE)
+TAB_HABITAT_ASSESSMENT <- fread("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV/TAB_HABITAT_ASSESSMENT.csv", stringsAsFactors = FALSE)
+TAB_TAXONOMIC_COUNT <- fread("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV/TAB_TAXONOMIC_COUNT.csv", stringsAsFactors = FALSE)
+TAB_HUC_12 <- fread("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV/TAB_HUC_12.csv", stringsAsFactors = FALSE)
+TAB_MASTER_TAXA_LIST <- fread("C:/Users/RJepson/Desktop/Chessie BIBI/Access_2_CSV/TAB_MASTER_TAXA_LIST.csv", stringsAsFactors = FALSE)
 
-tab.vec <- c("TAB_EVENT",
-             "TAB_STATIONS",
-             "TAB_PROJECT",
-             "TAB_WQ_DATA",
-             "TAB_HABITAT_ASSESSMENT",
-             "TAB_TAXONOMIC_COUNT",
-             "TAB_HUC_12",
-             "TAB_MASTER_TAXA_LIST")
+tab.vec <- c("TAB_EVENT.csv",
+             "TAB_STATIONS.csv",
+             "TAB_PROJECT.csv",
+             "TAB_WQ_DATA.csv",
+             "TAB_HABITAT_ASSESSMENT.csv",
+             "TAB_TAXONOMIC_COUNT.csv",
+             "TAB_HUC_12.csv",
+             "TAB_MASTER_TAXA_LIST.csv")
+
+tab.list <- list(TAB_EVENT, TAB_STATIONS, TAB_PROJECT, TAB_WQ_DATA, TAB_HABITAT_ASSESSMENT, TAB_TAXONOMIC_COUNT, TAB_HUC_12, TAB_MASTER_TAXA_LIST)
+
+rbind_list(tab.list)
+
+clean_df(tab.list)
 
 tab.list <- purrr::map(tab.vec, function(tab.i) {
   clean_df()
 }) %>% 
-  set_names(tolower(tab.vec))
+  set_names(tolower(tab.list))
 
 
 
@@ -190,18 +200,13 @@ prep.df2 <-
     TRUE ~ "ERROR"
   )
 )
+```
+####**1.6**
+Remove samples taken from Dec-Feb.
+```{r}
 
-#prep.df2 <- prep.df2 %>%
- # month = as.integer(month) %>%
-  #filter(!month %in% c("01", "02", "12"))
-
-#prep.df2 <- as.numeric(prep.df2$month)
-#prep.df2 <- prep.df2 %>% month = as.integer(month)
-
-
- #   prep.df2 <- prep.df2 %>%
-#    mutate(month = format(date, "%m"), month = as.integer(month)) %>%
- #                 !month %in% c(12, 1, 2)
+prep.df2 <- prep.df2 %>%
+ filter(!month %in% c("01", "02", "12"))
 
 #prep.df2$month <- as.integer(as.character(prep.df2$month)) %>%
 #filter(!month %in% c(12, 1, 2))
@@ -2031,6 +2036,10 @@ bind9 <- rbind(bind8, SGV_sub)
 bind10 <- rbind(bind9, LNP_sub)
 bibi_ratings_combined <- rbind(bind10, PIED_sub)
 ```
+To download a csv of the Chessie BIBI ratings of all bioregions, use the following script.
+```{r eval=FALSE}
+write.csv(bibi_ratings_combined, file= "name_of_file.csv")
+```
 ####**6.2**
 Create a stacked bar chart of the ratings of each bioregion with `ggplot2`.
 ```{r echo=TRUE}
@@ -2044,7 +2053,7 @@ stacked_bar <- bibi_ratings_combined %>%
   arrange(icprb_bioregion_id, rating)
 
   ggplot(stacked_bar) + geom_bar(aes(y = percent, x = icprb_bioregion_id, fill = rating), data = stacked_bar, stat="identity") + 
-                        ggtitle("Chessie BIBI Index Scores for   Family-level Bioregion Indices") + ylab("Percent (%)") + xlab("Bioregion") +
+                        ggtitle("Chessie BIBI Index Scores for Family-level Bioregion Indices") + ylab("Percent (%)") + xlab("Bioregion") +
                         scale_fill_manual(name = "Rating",
                         labels = c("Excellent", "Good", "Fair", "Poor", "Very poor"),
                         values = c("excellent" = "darkgreen", "good" = "green3", "fair" = "yellow2", "poor" = "orange2", "very_poor" = "red3"))  
