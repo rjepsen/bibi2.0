@@ -1,7 +1,6 @@
 ---
 title: "Directions for Calculating the Chessie BIBI in RStudio"
-author:
-  output:
+output:
   html_document:
     df_print: paged
     toc: true
