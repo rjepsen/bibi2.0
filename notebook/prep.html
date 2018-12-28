@@ -238,15 +238,24 @@ div.tocify {
 <div id="data-preparation" class="section level3">
 <h3><strong>1. DATA PREPARATION</strong></h3>
 <p>Most macroinvertebrate assemblage data are formatted in a similar manner; however, rarely can data sets from two separate entities be joined without some manipulation. The data preparation functions outlined below manipulate the data to meet formatting requirements necessary for using several custom functions. For these functions to be useful, you must first prepare the data using the provided functions outlined below.</p>
-<p>The following tables are required for the scripts to work. They can be pulled from an MS Access database or uploaded as individual csv files.<br />
-* TAB_EVENT<br />
-* TAB_STATIONS<br />
-* TAB_PROJECT<br />
-* TAB_WQ_DATA<br />
-* TAB_HABITAT_ASSESSMENT<br />
-* TAB_TAXONOMIC_COUNT<br />
-* TAB_HUC_12<br />
-* TAB_MASTER_TAXA_LIST</p>
+<p>The following tables are required for the scripts to work. They can be pulled from an MS Access database or uploaded as individual csv files.</p>
+<ul>
+<li>TAB_EVENT<br />
+</li>
+<li>TAB_STATIONS<br />
+</li>
+<li>TAB_PROJECT<br />
+</li>
+<li>TAB_WQ_DATA<br />
+</li>
+<li>TAB_HABITAT_ASSESSMENT<br />
+</li>
+<li>TAB_TAXONOMIC_COUNT<br />
+</li>
+<li>TAB_HUC_12<br />
+</li>
+<li>TAB_MASTER_TAXA_LIST</li>
+</ul>
 <p>Please refer to the (name and url) document and practice data set for information about setting up the tables above. Data may be entered in uppercase or lowercase, but all text will be converted to lowercase during the data preparation process. The document also contains several keys that explain codes and acronyms that were used. The codes and acronyms can be used as a template for your data tables. Finally, it is important that you name all the columns and tables in the same way as they appear in the document, otherwise the scripts will not work.</p>
 <div id="section" class="section level4">
 <h4><strong>1.1</strong></h4>
@@ -271,8 +280,19 @@ library(ggplot2)</code></pre>
 </div>
 <div id="section-1" class="section level4">
 <h4><strong>1.2</strong></h4>
-<p>Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. If you don’t know which Windows version is on your computer, follow the directions on <a href="https://support.microsoft.com/en-us/help/13443/windows-which-operating-system">this site</a> to check. Both directions are outlined below. If you need help establishing the ODBC connection, refer to <a href="https://www.youtube.com/watch?v=Uh0pLPS3R5Y">this</a> YouTube video.</p>
-<p>Then, the <em>mmir</em> function, <code>clean_df()</code>, is implemented, setting all text to lowercase and removing unwanted spaces in the data.</p>
+<p>Import the following tables from the Microsoft Access database. This process will differ depending both on which Windows operating system and Microsoft Office, 64-bit or 32-bit, is used. To check which Windows operating system is on your computer, follow the directions on <a href="https://support.microsoft.com/en-us/help/13443/windows-which-operating-system">this site</a> to check. Refer to <a href="https://support.office.com/en-us/article/about-office-what-version-of-office-am-i-using-932788b8-a3ce-44bf-bb09-e334518b8b19">this</a> site to determine which Microsoft Office is installed.</p>
+<p>An Open Database Connectivity (ODBC) interface is used to link the MS Access database to RStudio. If you need help establishing the ODBC connection, refer to <a href="https://www.youtube.com/watch?v=Uh0pLPS3R5Y">this</a> YouTube video.</p>
+<p>If the Windows operating system and MS Office are both either 64-bit or 32-bit, establishing the connection should not present a challenge, but extra steps need to be taken if the operating system is 64-bit and MS Office is 32-bit:</p>
+<ol style="list-style-type: decimal">
+<li>When downloading the driver,<a href="https://www.microsoft.com/en-us/download/details.aspx?id=13255">Microsoft Access Database Engine 2010</a>, select AccessDatabaseEngine.exe, not AccessDatabaseEngine_X64.exe.<br />
+</li>
+<li>Once the MS Access Database Engine is installed, click the “Windows” key and “R”, or go to Start &gt; Run and type the following into the Run dialog: c:6432.exe<br />
+</li>
+<li>You can now go back to the ODBC Data Source Administrator and proceed with setting up the ODBC connection.<br />
+</li>
+<li>The last step is to change RStudio to the 32-bit version. Tools &gt; Global Options &gt; General &gt; change the version to 32-bit.</li>
+</ol>
+<p>Once the ODBC connection is established, use the <em>mmir</em> function, <code>clean_df()</code>, is implemented, setting all text to lowercase and removing unwanted spaces in the data.</p>
 <p>Windows 64-bit:</p>
 <pre class="r"><code>channel &lt;- dbConnect(odbc(), &quot;CBIBI_2017&quot;)
 
@@ -411,10 +431,7 @@ rm(tab.list)</code></pre>
 <h4><strong>1.6</strong></h4>
 <p>Remove samples taken from Dec-Feb.</p>
 <pre class="r"><code>prep.df2 &lt;- prep.df2 %&gt;%
- filter(!month %in% c(&quot;01&quot;, &quot;02&quot;, &quot;12&quot;))
-
-#prep.df2$month &lt;- as.integer(as.character(prep.df2$month)) %&gt;%
-#filter(!month %in% c(12, 1, 2))</code></pre>
+ filter(!month %in% c(&quot;01&quot;, &quot;02&quot;, &quot;12&quot;))</code></pre>
 </div>
 <div id="section-6" class="section level4">
 <h4><strong>1.6</strong></h4>
@@ -438,6 +455,85 @@ rm(tab.list)</code></pre>
 <h4><strong>1.7</strong></h4>
 <p>Probabilistic rarefaction as described in Appendix D.</p>
 <pre class="r"><code>taxa.df &lt;- prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)</code></pre>
+<pre class="r"><code>test_prob_rarefaction &lt;- function(long.df, unique.id.col, count.col, taxon.col, sample) {
+  unique.id.col &lt;- rlang::enquo(unique.id.col)
+  count.col &lt;- rlang::enquo(count.col)
+  taxon.col &lt;- rlang::enquo(taxon.col)
+  #----------------------------------------------------------------------------
+  if (any(is.na(long.df[, quo_name(taxon.col)]))) {
+    stop(&quot;The speciefied 'taxon.col' cannot contain any NAs. Select another column or fill the rows with proceeding taxonomic ranks using mmir::fill_taxa().&quot;)
+  }
+  #----------------------------------------------------------------------------
+  wide.df &lt;- long.df %&gt;%
+    dplyr::select(!!unique.id.col, !!taxon.col, !!count.col) %&gt;%          # if na, 0 then turn other numbers into integers
+    tidyr::complete(!!taxon.col, !!unique.id.col) %&gt;%
+    dplyr::mutate(!!quo_name(count.col) := if_else(is.na(!!count.col),
+                                                   as.integer(0),
+                                                   as.integer(!!count.col))) %&gt;%
+    dplyr::group_by(!!unique.id.col) %&gt;%
+    dplyr::mutate(total = sum(!!count.col)) %&gt;%
+    dplyr::ungroup() %&gt;%
+    dplyr::filter(total &gt; sample) %&gt;%   # sample == 100, user specified; threshold
+    tidyr::spread(!!taxon.col, !!count.col)
+  
+  vegan.df &lt;- wide.df %&gt;%
+    dplyr::select(!!unique.id.col) %&gt;%
+    dplyr::mutate(rare = vegan::rarefy(wide.df[ , 3:ncol(wide.df)], sample, 2)[1,])
+  
+  rich.df &lt;- long.df %&gt;%
+    dplyr::select(!!unique.id.col) %&gt;%
+    dplyr::distinct() %&gt;%
+    dplyr::mutate(rich = taxa_rich(long.df, !!unique.id.col, rlang::UQ(count.col), !!taxon.col))
+  
+  rare.df &lt;- dplyr::left_join(long.df, rich.df, by = dplyr::quo_name(unique.id.col)) %&gt;%
+    dplyr::left_join(vegan.df, by = dplyr::quo_name(unique.id.col)) %&gt;%
+    group_by(unique_id) %&gt;%
+    dplyr::mutate(total = sum(!!count.col),
+                  rare_count = dplyr::if_else(is.na(rare),
+                                              as.double(!!count.col),
+                                              rlang::UQ(count.col) / total * sample),
+                  rare = dplyr::if_else(is.na(rare), rich, as.integer(round(rare, 0)))) %&gt;%
+    dplyr::ungroup()
+  
+  last.value &lt;- rare.df %&gt;%
+    dplyr::select(!!unique.id.col, !!count.col, rare, rare_count) %&gt;%
+    dplyr::group_by(!!unique.id.col) %&gt;%
+    dplyr::filter(dplyr::desc(!!count.col) %&gt;%  dplyr::row_number() == rare) %&gt;%
+    dplyr::select(!!unique.id.col, rare_count) %&gt;%
+    dplyr::rename(last_value = rare_count) %&gt;%
+    dplyr::distinct() %&gt;%
+    dplyr::ungroup()
+  
+  final.df &lt;- dplyr::left_join(rare.df, last.value, by = dplyr::quo_name(unique.id.col)) %&gt;%
+    dplyr::group_by(!!unique.id.col) %&gt;%
+    dplyr::mutate(greater_than_last = sum(rare_count &gt; last_value),
+                  last_random = rare - greater_than_last,
+                  last_count = sum(rare_count == last_value),
+                  #last_random = dplyr::if_else(last_random &lt; 0, as.integer(0), last_random),
+                  #last_diff = last_count - last_random,
+                  rare_cat = dplyr::case_when(
+                    rare_count &gt; last_value ~ &quot;keep&quot;,
+                    rare_count == last_value ~ &quot;last&quot;,
+                    rare_count &lt; last_value ~ &quot;zero&quot;,
+                    TRUE ~ &quot;ERROR&quot;
+                  )) %&gt;%
+    dplyr::group_by(!!unique.id.col, rare_cat) %&gt;%
+    dplyr::mutate(rand_rank = 1:n()) %&gt;%
+    dplyr::filter(!rare_cat %in% &quot;zero&quot;) %&gt;%
+    group_by(!!unique.id.col, rare_cat) %&gt;%
+    dplyr::filter(!(rare_cat == &quot;last&quot; &amp; rand_rank %in% sample(1:unique(last_count), last_count - last_random))) %&gt;%
+    dplyr::ungroup() %&gt;%
+    dplyr::select(!!unique.id.col, !!taxon.col, rare_count) %&gt;%
+    dplyr::right_join(long.df, by = c(dplyr::quo_name(unique.id.col),
+                                      dplyr::quo_name(taxon.col))) %&gt;%
+    tidyr::replace_na(list(rare_count = 0)) %&gt;%
+    dplyr::mutate(rare_count = ceiling(rare_count))
+  
+  return(final.df)
+  
+}
+
+test.df &lt;- test_prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)</code></pre>
 </div>
 </div>
 <div id="calculate-the-biological-metrics" class="section level3">

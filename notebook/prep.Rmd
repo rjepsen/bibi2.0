@@ -20,6 +20,7 @@ For those who are new to RStudio, each time a data frame is created, it can be v
 Most macroinvertebrate assemblage data are formatted in a similar manner; however, rarely can data sets from two separate entities be joined without some manipulation. The data preparation functions outlined below manipulate the data to meet formatting requirements necessary for using several custom functions. For these functions to be useful, you must first prepare the data using the provided functions outlined below.  
 
 The following tables are required for the scripts to work. They can be pulled from an MS Access database or uploaded as individual csv files.   
+
 * TAB_EVENT  
 * TAB_STATIONS     
 * TAB_PROJECT  
@@ -54,9 +55,18 @@ library(vegan)
 library(ggplot2)
 ```
 ####**1.2**
-Import the following tables from the Microsoft Access database. This process differs depending on which version of Windows, 64-bit or 32-bit, is installed. If you don't know which Windows version is on your computer, follow the directions on [this site](https://support.microsoft.com/en-us/help/13443/windows-which-operating-system) to check. Both directions are outlined below. If you need help establishing the ODBC connection, refer to [this](https://www.youtube.com/watch?v=Uh0pLPS3R5Y) YouTube video.
+Import the following tables from the Microsoft Access database. This process will differ depending both on which Windows operating system and Microsoft Office, 64-bit or 32-bit, is used. To check which Windows operating system is on your computer, follow the directions on [this site](https://support.microsoft.com/en-us/help/13443/windows-which-operating-system) to check. Refer to [this](https://support.office.com/en-us/article/about-office-what-version-of-office-am-i-using-932788b8-a3ce-44bf-bb09-e334518b8b19) site to determine which Microsoft Office is installed.    
 
-Then, the *mmir* function, `clean_df()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data.  
+An Open Database Connectivity (ODBC) interface is used to link the MS Access database to RStudio. If you need help establishing the ODBC connection, refer to [this](https://www.youtube.com/watch?v=Uh0pLPS3R5Y) YouTube video.  
+
+If the Windows operating system and MS Office are both either 64-bit or 32-bit, establishing the connection should not present a challenge, but extra steps need to be taken if the operating system is 64-bit and MS Office is 32-bit:  
+
+1. When downloading the driver,[Microsoft Access Database Engine 2010](https://www.microsoft.com/en-us/download/details.aspx?id=13255), select AccessDatabaseEngine.exe, not AccessDatabaseEngine_X64.exe.  
+2. Once the MS Access Database Engine is installed, click the "Windows" key and "R", or go to Start > Run and type the following into the Run dialog: c:\windows\sysWOW64\odbcad32.exe  
+3. You can now go back to the ODBC Data Source Administrator and proceed with setting up the ODBC connection.  
+4. The last step is to change RStudio to the 32-bit version. Tools > Global Options > General > change the version to 32-bit.  
+
+Once the ODBC connection is established, use the *mmir* function, `clean_df()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data.  
 
 Windows 64-bit:
 ```{r}
@@ -206,10 +216,6 @@ Remove samples taken from Dec-Feb.
 
 prep.df2 <- prep.df2 %>%
  filter(!month %in% c("01", "02", "12"))
-
-#prep.df2$month <- as.integer(as.character(prep.df2$month)) %>%
-#filter(!month %in% c(12, 1, 2))
-
 ```
 ####**1.6**
 Perform general cleaning of the data frame, and `select` only the indicated columns. The resulting data frame is **taxa.df**, which will be the input to the rarefaction step.
