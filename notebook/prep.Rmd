@@ -12,7 +12,9 @@ This R-script and documentation is intended as a supplement to the [Smith et al.
 ###**BEFORE YOU GET STARTED**  
 The initial setup of the data tables, installation of the custom packages, and establishing the ODBC connection to the database will likely require a decent input of time. Once, however, this is accomplished, running the scripts should be a fairly quick process.      
 
-In order to implement the following R scripts, RStudio must be installed. If RStudio is not installed, it can be downloaded for free from [https://www.rstudio.com/](https://www.rstudio.com/). This [webpage](https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/) details the short installation process. If RStudio is already installed, check the version that is currently being used (Help -> About RStudio). This script was written in Version 1.1.453, so if you have an older version, you may want to upgrade (Help -> Check for Update -> follow instructions). Once installed, or if already installed, the scripts are designed to be copied and pasted into RStudio. Currently, a Windows machine must be used for data importation.   
+In order to implement the following R scripts, RStudio must be installed. If RStudio is not installed, it can be downloaded for free from [https://www.rstudio.com/](https://www.rstudio.com/). This [webpage](https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/) details the short installation process. If RStudio is already installed, check the version that is currently being used (Help -> About RStudio). This script was written in Version 1.1.453, so if you have an older version, you may want to upgrade (Help -> Check for Update -> follow instructions). Currently, a Windows machine must be used for data importation.  
+
+Once installed, or if already installed, the scripts are designed to be copied and pasted into RStudio. In order to keep your scripts organized, it is suggested that you comment out a header for each code chunk corresponding to these instructions. For example, for the first step of loading packages, type in `# 1.1` as the header.      
 
 For those who are new to RStudio, each time a data frame is created, it can be viewed by typing `View(name)` in the console or by clicking its name in the Environment tab on the right.  
 
@@ -41,6 +43,9 @@ Load the following packages into the environment. The packages must be installed
 
 * *bibi2.0* is a custom package developed by Zachary Smith used to automate the data preparation process. It is downloaded in the same manner as *mmir*. Use `devtools::install_github("InterstateCommissionPotomacRiverBasin/bibi2.0")`. Load using `library(bibi2.0)`.
 ```{r message=FALSE}
+devtools::install_github("InterstateCommissionPotomacRiverBasin/BIBI")
+devtools::install_github("InterstateCommissionPotomacRiverBasin/bibi2.0")
+library(BIBI)
 library(tidyverse)
 library(stringr)
 library(lubridate)
@@ -57,16 +62,18 @@ library(ggplot2)
 ####**1.2**
 Import the following tables from the Microsoft Access database. This process will differ depending both on which Windows operating system and Microsoft Office, 64-bit or 32-bit, is used. To check which Windows operating system is on your computer, follow the directions on [this site](https://support.microsoft.com/en-us/help/13443/windows-which-operating-system) to check. Refer to [this](https://support.office.com/en-us/article/about-office-what-version-of-office-am-i-using-932788b8-a3ce-44bf-bb09-e334518b8b19) site to determine which Microsoft Office is installed.    
 
-An Open Database Connectivity (ODBC) interface is used to link the MS Access database to RStudio. If you need help establishing the ODBC connection, refer to [this](https://www.youtube.com/watch?v=Uh0pLPS3R5Y) YouTube video.  
+An Open Database Connectivity (ODBC) interface is used to link the MS Access database to RStudio. If you need help establishing the ODBC connection, refer to [this](https://www.youtube.com/watch?v=Uh0pLPS3R5Y) YouTube video.   
 
 If the Windows operating system and MS Office are both either 64-bit or 32-bit, establishing the connection should not present a challenge, but extra steps need to be taken if the operating system is 64-bit and MS Office is 32-bit:  
 
 1. When downloading the driver,[Microsoft Access Database Engine 2010](https://www.microsoft.com/en-us/download/details.aspx?id=13255), select AccessDatabaseEngine.exe, not AccessDatabaseEngine_X64.exe.  
-2. Once the MS Access Database Engine is installed, click the "Windows" key and "R", or go to Start > Run and type the following into the Run dialog: c:\windows\sysWOW64\odbcad32.exe  
+2. Once the MS Access Database Engine is installed, click the "Windows" key and "R", or go to Start > Run and type the following into the Run dialog:c:\windows\sysWOW64\odbcad32.exe
 3. You can now go back to the ODBC Data Source Administrator and proceed with setting up the ODBC connection.  
 4. The last step is to change RStudio to the 32-bit version. Tools > Global Options > General > change the version to 32-bit.  
 
 Once the ODBC connection is established, use the *mmir* function, `clean_df()`, is implemented, setting all text to lowercase and removing unwanted spaces in the data.  
+
+**NOTE** You will probably not want to name your database CBIBI_2017, as the database used for these instructions was. Therefore, when you have established the ODBC connections with your own database, change the code below from `channel <- dbConnect(odbc(), "CBIBI_2017")` to `channel <- dbConnect(odbc(), "your_database_name")`.  
 
 Windows 64-bit:
 ```{r}
@@ -179,8 +186,6 @@ prep.df <- prep_data(tab.list$tab_taxonomic_count,
                      tab.list$tab_project,
                      tab.list$tab_huc_12,
                      development = FALSE)
-
-rm(tab.list)
 ```
 ####**1.5**
 Convert the Functional Feeding Group (FFG) and Habit codes to full names. This adds two new columns, *ffg* and *habit*, to **prep.df2**, which will be used instead of *bibi_ffg* and *bibi_habit*.
