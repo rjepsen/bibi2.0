@@ -44,7 +44,6 @@ Load the following packages into the environment. The packages must be installed
 * *bibi2.0* is a custom package developed by Zachary Smith used to automate the data preparation process. It is downloaded in the same manner as *mmir*. Use `devtools::install_github("InterstateCommissionPotomacRiverBasin/bibi2.0")`. Load using `library(bibi2.0)`.
 ```{r message=FALSE}
 #devtools::install_github("InterstateCommissionPotomacRiverBasin/BIBI")
-devtools::install_github("InterstateCommissionPotomacRiverBasin/bibi2.0")
 #library(BIBI)
 library(tidyverse)
 library(stringr)
@@ -177,7 +176,7 @@ Apply the `prep_data()` function from the *bibi2.0* package to the indicated tab
 3) Method prep function: exclude samples collected from December to February; include only samples from 1^st^ - 4^th^ order streams; restrict the sampling method to kick-net or similar procedures.    
 
 The output is **prep.df**, one large data frame which contains all of the taxa, water quality, and habitat data.  
-```{r cache=TRUE}
+```{r}
 prep.df <- prep_data(tab.list$tab_taxonomic_count,
                      tab.list$tab_wq_data,
                      tab.list$tab_habitat_assessment,
@@ -214,12 +213,6 @@ prep.df2 <-
     TRUE ~ "ERROR"
   )
 )
-```
-####**1.6**
-Remove samples taken from Dec-Feb.
-```{r}
-prep.df2 <- prep.df2 %>%
- filter(!month %in% c("01", "02", "12"))
 ```
 ####**1.6**
 Perform general cleaning of the data frame, and `select` only the indicated columns. The resulting data frame is **taxa.df**, which will be the input to the rarefaction step.
