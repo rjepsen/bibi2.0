@@ -43,9 +43,9 @@ Load the following packages into the environment. The packages must be installed
 
 * *bibi2.0* is a custom package developed by Zachary Smith used to automate the data preparation process. It is downloaded in the same manner as *mmir*. Use `devtools::install_github("InterstateCommissionPotomacRiverBasin/bibi2.0")`. Load using `library(bibi2.0)`.
 ```{r message=FALSE}
-devtools::install_github("InterstateCommissionPotomacRiverBasin/BIBI")
+#devtools::install_github("InterstateCommissionPotomacRiverBasin/BIBI")
 devtools::install_github("InterstateCommissionPotomacRiverBasin/bibi2.0")
-library(BIBI)
+#library(BIBI)
 library(tidyverse)
 library(stringr)
 library(lubridate)
@@ -60,14 +60,14 @@ library(vegan)
 library(ggplot2)
 ```
 ####**1.2**
-Import the following tables from the Microsoft Access database. This process will differ depending both on which Windows operating system and Microsoft Office, 64-bit or 32-bit, is used. To check which Windows operating system is on your computer, follow the directions on [this site](https://support.microsoft.com/en-us/help/13443/windows-which-operating-system) to check. Refer to [this](https://support.office.com/en-us/article/about-office-what-version-of-office-am-i-using-932788b8-a3ce-44bf-bb09-e334518b8b19) site to determine which Microsoft Office is installed.    
+Import the following tables from the Microsoft Access database. This process will differ depending both on which Windows operating system and Microsoft Office, 64-bit or 32-bit, is used. To check which Windows operating system is on your computer, follow the directions on [this](https://support.microsoft.com/en-us/help/13443/windows-which-operating-system) to check. Refer to [this](https://support.office.com/en-us/article/about-office-what-version-of-office-am-i-using-932788b8-a3ce-44bf-bb09-e334518b8b19) site to determine which Microsoft Office is installed.    
 
 An Open Database Connectivity (ODBC) interface is used to link the MS Access database to RStudio. If you need help establishing the ODBC connection, refer to [this](https://www.youtube.com/watch?v=Uh0pLPS3R5Y) YouTube video.   
 
 If the Windows operating system and MS Office are both either 64-bit or 32-bit, establishing the connection should not present a challenge, but extra steps need to be taken if the operating system is 64-bit and MS Office is 32-bit:  
 
-1. When downloading the driver,[Microsoft Access Database Engine 2010](https://www.microsoft.com/en-us/download/details.aspx?id=13255), select AccessDatabaseEngine.exe, not AccessDatabaseEngine_X64.exe.  
-2. Once the MS Access Database Engine is installed, click the "Windows" key and "R", or go to Start > Run and type the following into the Run dialog:c:\windows\sysWOW64\odbcad32.exe
+1. When downloading the driver, [Microsoft Access Database Engine 2010](https://www.microsoft.com/en-us/download/details.aspx?id=13255), select AccessDatabaseEngine.exe, not AccessDatabaseEngine_X64.exe.  
+2. Once the MS Access Database Engine is installed, click the "Windows" key and "R", or go to Start > Run and type the following into the Run dialog: `c:\windows\sysWOW64\odbcad32.exe`
 3. You can now go back to the ODBC Data Source Administrator and proceed with setting up the ODBC connection.  
 4. The last step is to change RStudio to the 32-bit version. Tools > Global Options > General > change the version to 32-bit.  
 
@@ -218,7 +218,6 @@ prep.df2 <-
 ####**1.6**
 Remove samples taken from Dec-Feb.
 ```{r}
-
 prep.df2 <- prep.df2 %>%
  filter(!month %in% c("01", "02", "12"))
 ```

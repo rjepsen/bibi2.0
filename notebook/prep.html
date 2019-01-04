@@ -232,7 +232,8 @@ div.tocify {
 <div id="before-you-get-started" class="section level3">
 <h3><strong>BEFORE YOU GET STARTED</strong></h3>
 <p>The initial setup of the data tables, installation of the custom packages, and establishing the ODBC connection to the database will likely require a decent input of time. Once, however, this is accomplished, running the scripts should be a fairly quick process.</p>
-<p>In order to implement the following R scripts, RStudio must be installed. If RStudio is not installed, it can be downloaded for free from <a href="https://www.rstudio.com/" class="uri">https://www.rstudio.com/</a>. This <a href="https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/">webpage</a> details the short installation process. If RStudio is already installed, check the version that is currently being used (Help -&gt; About RStudio). This script was written in Version 1.1.453, so if you have an older version, you may want to upgrade (Help -&gt; Check for Update -&gt; follow instructions). Once installed, or if already installed, the scripts are designed to be copied and pasted into RStudio. Currently, a Windows machine must be used for data importation.</p>
+<p>In order to implement the following R scripts, RStudio must be installed. If RStudio is not installed, it can be downloaded for free from <a href="https://www.rstudio.com/" class="uri">https://www.rstudio.com/</a>. This <a href="https://courses.edx.org/courses/UTAustinX/UT.7.01x/3T2014/56c5437b88fa43cf828bff5371c6a924/">webpage</a> details the short installation process. If RStudio is already installed, check the version that is currently being used (Help -&gt; About RStudio). This script was written in Version 1.1.453, so if you have an older version, you may want to upgrade (Help -&gt; Check for Update -&gt; follow instructions). Currently, a Windows machine must be used for data importation.</p>
+<p>Once installed, or if already installed, the scripts are designed to be copied and pasted into RStudio. In order to keep your scripts organized, it is suggested that you comment out a header for each code chunk corresponding to these instructions. For example, for the first step of loading packages, type in <code># 1.1</code> as the header.</p>
 <p>For those who are new to RStudio, each time a data frame is created, it can be viewed by typing <code>View(name)</code> in the console or by clicking its name in the Environment tab on the right.</p>
 </div>
 <div id="data-preparation" class="section level3">
@@ -265,7 +266,64 @@ div.tocify {
 <li><p><em>mmir</em> is a custom package developed by Zachary Smith used to calculate taxonomic community metrics. The installation process is currently regrettably tricky and may require a certain degree of “messing with.” It can be downloaded from the <a href="https://github.com/InterstateCommissionPotomacRiverBasin/mmir">ICPRB GitHub account</a> using, in RStudio, <code>devtools::install_github(&quot;InterstateCommissionPotomacRiverBasin/mmir&quot;)</code> or <code>devtools::install_github(&quot;zsmith27/mmir&quot;, ref = &quot;dev&quot;, force = TRUE, quiet = TRUE)</code>. If the first path does not work, please try the second. The second may prompt you to install other packages, which you should do. After installing those additional packages, retry the installation path. After the installation, <em>mmir</em> must be loaded into the environment using <code>library(mmir)</code>. Note: the <em>devtools</em> package must be installed first.</p></li>
 <li><p><em>bibi2.0</em> is a custom package developed by Zachary Smith used to automate the data preparation process. It is downloaded in the same manner as <em>mmir</em>. Use <code>devtools::install_github(&quot;InterstateCommissionPotomacRiverBasin/bibi2.0&quot;)</code>. Load using <code>library(bibi2.0)</code>.</p></li>
 </ul>
-<pre class="r"><code>library(tidyverse)
+<pre class="r"><code>devtools::install_github(&quot;InterstateCommissionPotomacRiverBasin/BIBI&quot;)
+devtools::install_github(&quot;InterstateCommissionPotomacRiverBasin/bibi2.0&quot;)</code></pre>
+<pre><code>##   
+  
+  
+   checking for file 'C:\Users\RJepson\AppData\Local\Temp\RtmpqCHLFf\remotes1cc45c1f367a\InterstateCommissionPotomacRiverBasin-bibi2.0-1c994df/DESCRIPTION' ...
+  
+   checking for file 'C:\Users\RJepson\AppData\Local\Temp\RtmpqCHLFf\remotes1cc45c1f367a\InterstateCommissionPotomacRiverBasin-bibi2.0-1c994df/DESCRIPTION' ... 
+  
+v  checking for file 'C:\Users\RJepson\AppData\Local\Temp\RtmpqCHLFf\remotes1cc45c1f367a\InterstateCommissionPotomacRiverBasin-bibi2.0-1c994df/DESCRIPTION'
+## 
+  
+  
+  
+-  preparing 'bibi2.0': (406ms)
+##    checking DESCRIPTION meta-information ...
+  
+   checking DESCRIPTION meta-information ... 
+  
+v  checking DESCRIPTION meta-information
+## 
+  
+  
+  
+-  checking for LF line-endings in source and make files and shell scripts
+## 
+  
+  
+  
+-  checking for empty or unneeded directories
+## 
+  
+  
+  
+-  looking to see if a 'data/datalist' file should be added
+## 
+  
+  
+  
+-  building 'bibi2.0_0.0.0.9000.tar.gz'
+## 
+  
+Warning in utils::tar(filepath, pkgname, compression = &quot;gzip&quot;, compression_level = 9L,  :
+  
+   Warning in utils::tar(filepath, pkgname, compression = &quot;gzip&quot;, compression_level = 9L,  :
+##      storing paths of more than 100 bytes is not portable:
+##      'bibi2.0/notebook/misc/disturbance_gradient/rsconnect/documents/master.Rmd/rpubs.com/rpubs/Document.dcf'
+## 
+  
+   Warning in utils::tar(filepath, pkgname, compression = &quot;gzip&quot;, compression_level = 9L,  :
+##      storing paths of more than 100 bytes is not portable:
+##      'bibi2.0/notebook/misc/disturbance_gradient/rsconnect/documents/master.Rmd/rpubs.com/rpubs/Publish Document.dcf'
+## 
+  
+   
+## </code></pre>
+<pre class="r"><code>library(BIBI)
+library(tidyverse)
 library(stringr)
 library(lubridate)
 library(devtools)
@@ -286,13 +344,13 @@ library(ggplot2)</code></pre>
 <ol style="list-style-type: decimal">
 <li>When downloading the driver,<a href="https://www.microsoft.com/en-us/download/details.aspx?id=13255">Microsoft Access Database Engine 2010</a>, select AccessDatabaseEngine.exe, not AccessDatabaseEngine_X64.exe.<br />
 </li>
-<li>Once the MS Access Database Engine is installed, click the “Windows” key and “R”, or go to Start &gt; Run and type the following into the Run dialog: c:6432.exe<br />
-</li>
+<li>Once the MS Access Database Engine is installed, click the “Windows” key and “R”, or go to Start &gt; Run and type the following into the Run dialog:c:6432.exe</li>
 <li>You can now go back to the ODBC Data Source Administrator and proceed with setting up the ODBC connection.<br />
 </li>
 <li>The last step is to change RStudio to the 32-bit version. Tools &gt; Global Options &gt; General &gt; change the version to 32-bit.</li>
 </ol>
 <p>Once the ODBC connection is established, use the <em>mmir</em> function, <code>clean_df()</code>, is implemented, setting all text to lowercase and removing unwanted spaces in the data.</p>
+<p><strong>NOTE</strong> You will probably not want to name your database CBIBI_2017, as the database used for these instructions was. Therefore, when you have established the ODBC connections with your own database, change the code below from <code>channel &lt;- dbConnect(odbc(), &quot;CBIBI_2017&quot;)</code> to <code>channel &lt;- dbConnect(odbc(), &quot;your_database_name&quot;)</code>.</p>
 <p>Windows 64-bit:</p>
 <pre class="r"><code>channel &lt;- dbConnect(odbc(), &quot;CBIBI_2017&quot;)
 
@@ -373,7 +431,7 @@ set_names(tolower(tab.list))</code></pre>
 </div>
 <div id="section-2" class="section level4">
 <h4><strong>1.3</strong></h4>
-<p>Join the Master Taxa List to the taxonomic count table using the <em>tsn_final</em> column. Then, apply the <code>prep_taxa()</code> function in the <em>bibi2.0</em> package to perform taxa eclusions and roll-ups (Final Report, Pages 6-7). This step also creates a new column called unique_id, which is a combination of event_id and sample_num. The unique_id will be used extensively in the rest of the scripts.</p>
+<p>Join the Master Taxa List to the taxonomic count table using the <em>tsn_final</em> column. Then, apply the <code>prep_taxa()</code> function in the <em>bibi2.0</em> package to perform taxa exclusions and roll-ups (Final Report, Pages 6-7). This step also creates a new column called unique_id, which is a combination of event_id and sample_num. The unique_id will be used extensively in the rest of the scripts.</p>
 <pre class="r"><code> tab.list$tab_taxonomic_count &lt;- tab.list$tab_taxonomic_count %&gt;% 
    dplyr::mutate(tsn_final = str_replace_all(tsn_final, &quot;(?&lt;![0-9])0+&quot;, &quot;&quot;)) %&gt;% 
    left_join(tab.list$tab_master_taxa_list, by = &quot;tsn_final&quot;) %&gt;% 
@@ -395,9 +453,7 @@ set_names(tolower(tab.list))</code></pre>
                      tab.list$tab_stations,
                      tab.list$tab_project,
                      tab.list$tab_huc_12,
-                     development = FALSE)
-
-rm(tab.list)</code></pre>
+                     development = FALSE)</code></pre>
 </div>
 <div id="section-4" class="section level4">
 <h4><strong>1.5</strong></h4>
@@ -455,85 +511,6 @@ rm(tab.list)</code></pre>
 <h4><strong>1.7</strong></h4>
 <p>Probabilistic rarefaction as described in Appendix D.</p>
 <pre class="r"><code>taxa.df &lt;- prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)</code></pre>
-<pre class="r"><code>test_prob_rarefaction &lt;- function(long.df, unique.id.col, count.col, taxon.col, sample) {
-  unique.id.col &lt;- rlang::enquo(unique.id.col)
-  count.col &lt;- rlang::enquo(count.col)
-  taxon.col &lt;- rlang::enquo(taxon.col)
-  #----------------------------------------------------------------------------
-  if (any(is.na(long.df[, quo_name(taxon.col)]))) {
-    stop(&quot;The speciefied 'taxon.col' cannot contain any NAs. Select another column or fill the rows with proceeding taxonomic ranks using mmir::fill_taxa().&quot;)
-  }
-  #----------------------------------------------------------------------------
-  wide.df &lt;- long.df %&gt;%
-    dplyr::select(!!unique.id.col, !!taxon.col, !!count.col) %&gt;%          # if na, 0 then turn other numbers into integers
-    tidyr::complete(!!taxon.col, !!unique.id.col) %&gt;%
-    dplyr::mutate(!!quo_name(count.col) := if_else(is.na(!!count.col),
-                                                   as.integer(0),
-                                                   as.integer(!!count.col))) %&gt;%
-    dplyr::group_by(!!unique.id.col) %&gt;%
-    dplyr::mutate(total = sum(!!count.col)) %&gt;%
-    dplyr::ungroup() %&gt;%
-    dplyr::filter(total &gt; sample) %&gt;%   # sample == 100, user specified; threshold
-    tidyr::spread(!!taxon.col, !!count.col)
-  
-  vegan.df &lt;- wide.df %&gt;%
-    dplyr::select(!!unique.id.col) %&gt;%
-    dplyr::mutate(rare = vegan::rarefy(wide.df[ , 3:ncol(wide.df)], sample, 2)[1,])
-  
-  rich.df &lt;- long.df %&gt;%
-    dplyr::select(!!unique.id.col) %&gt;%
-    dplyr::distinct() %&gt;%
-    dplyr::mutate(rich = taxa_rich(long.df, !!unique.id.col, rlang::UQ(count.col), !!taxon.col))
-  
-  rare.df &lt;- dplyr::left_join(long.df, rich.df, by = dplyr::quo_name(unique.id.col)) %&gt;%
-    dplyr::left_join(vegan.df, by = dplyr::quo_name(unique.id.col)) %&gt;%
-    group_by(unique_id) %&gt;%
-    dplyr::mutate(total = sum(!!count.col),
-                  rare_count = dplyr::if_else(is.na(rare),
-                                              as.double(!!count.col),
-                                              rlang::UQ(count.col) / total * sample),
-                  rare = dplyr::if_else(is.na(rare), rich, as.integer(round(rare, 0)))) %&gt;%
-    dplyr::ungroup()
-  
-  last.value &lt;- rare.df %&gt;%
-    dplyr::select(!!unique.id.col, !!count.col, rare, rare_count) %&gt;%
-    dplyr::group_by(!!unique.id.col) %&gt;%
-    dplyr::filter(dplyr::desc(!!count.col) %&gt;%  dplyr::row_number() == rare) %&gt;%
-    dplyr::select(!!unique.id.col, rare_count) %&gt;%
-    dplyr::rename(last_value = rare_count) %&gt;%
-    dplyr::distinct() %&gt;%
-    dplyr::ungroup()
-  
-  final.df &lt;- dplyr::left_join(rare.df, last.value, by = dplyr::quo_name(unique.id.col)) %&gt;%
-    dplyr::group_by(!!unique.id.col) %&gt;%
-    dplyr::mutate(greater_than_last = sum(rare_count &gt; last_value),
-                  last_random = rare - greater_than_last,
-                  last_count = sum(rare_count == last_value),
-                  #last_random = dplyr::if_else(last_random &lt; 0, as.integer(0), last_random),
-                  #last_diff = last_count - last_random,
-                  rare_cat = dplyr::case_when(
-                    rare_count &gt; last_value ~ &quot;keep&quot;,
-                    rare_count == last_value ~ &quot;last&quot;,
-                    rare_count &lt; last_value ~ &quot;zero&quot;,
-                    TRUE ~ &quot;ERROR&quot;
-                  )) %&gt;%
-    dplyr::group_by(!!unique.id.col, rare_cat) %&gt;%
-    dplyr::mutate(rand_rank = 1:n()) %&gt;%
-    dplyr::filter(!rare_cat %in% &quot;zero&quot;) %&gt;%
-    group_by(!!unique.id.col, rare_cat) %&gt;%
-    dplyr::filter(!(rare_cat == &quot;last&quot; &amp; rand_rank %in% sample(1:unique(last_count), last_count - last_random))) %&gt;%
-    dplyr::ungroup() %&gt;%
-    dplyr::select(!!unique.id.col, !!taxon.col, rare_count) %&gt;%
-    dplyr::right_join(long.df, by = c(dplyr::quo_name(unique.id.col),
-                                      dplyr::quo_name(taxon.col))) %&gt;%
-    tidyr::replace_na(list(rare_count = 0)) %&gt;%
-    dplyr::mutate(rare_count = ceiling(rare_count))
-  
-  return(final.df)
-  
-}
-
-test.df &lt;- test_prob_rarefaction(taxa.df, unique_id, reporting_value, genus, 100)</code></pre>
 </div>
 </div>
 <div id="calculate-the-biological-metrics" class="section level3">
